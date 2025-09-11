@@ -94,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
 
               // register button
-              
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

@@ -1,6 +1,8 @@
 import 'package:agenda_century/features/auth/presentation/components/my_button.dart';
 import 'package:agenda_century/features/auth/presentation/components/my_textfield.dart';
+import 'package:agenda_century/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? togglePages;
@@ -16,6 +18,44 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
+  void register() {
+    // prepare info
+    final String name = nameController.text;
+    final String email = emailController.text;
+    final String password = passwordController.text;
+    final String confirmPassword = confirmPasswordController.text;
+
+    final authCubit = context.read<AuthCubit>();
+
+    if (email.isNotEmpty &&
+        name.isNotEmpty &&
+        password.isNotEmpty &&
+        confirmPassword.isNotEmpty) {
+      // ensure password match
+      if (password == confirmPassword) {
+        print(name);
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        authCubit.register(email, password, name);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Passwords do not match!!")),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please complete all fields!")));
+    }
+  }
+
+  @override
+  void dispose(){
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   // Build UI
   @override
@@ -79,8 +119,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
               // register button
               const SizedBox(height: 25),
-              MyButton(onTap: () {}, text: 'Register'),
-
+              MyButton(onTap: register, text: 'Register'),
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

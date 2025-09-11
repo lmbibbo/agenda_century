@@ -53,11 +53,13 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> register(String email, String password, String name) async {
     try {
       emit(AuthLoading());
-      final AppUser? user = await authRepo.registerWithEmailAndPassword(
+      final user = await authRepo.registerWithEmailAndPassword(
         email,
         password,
         name,
       );
+      print("User: ");
+      print(user);
       if (user != null) {
         _currentUser = user;
         emit(Authenticated(user));
