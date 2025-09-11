@@ -1,30 +1,21 @@
-/*
-
-Login Page
-  - This page provides a user interface for users to log in to the application.
-  - It includes fields for entering a username and password, as well as buttons for submitting the login form and navigating to the registration page.
-
-  if the user does not have an account, they can navigate to the registration page.
-
-*/
-
-//import 'package:agenda_century/features/auth/presentation/components/my_button.dart';
 import 'package:agenda_century/features/auth/presentation/components/my_button.dart';
 import 'package:agenda_century/features/auth/presentation/components/my_textfield.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   final void Function()? togglePages;
-  const LoginPage({super.key, required this.togglePages});
+  const RegisterPage({super.key, required this.togglePages});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   // text editing controllers
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   // Build UI
   @override
@@ -59,6 +50,13 @@ class _LoginPageState extends State<LoginPage> {
 
               const SizedBox(height: 25),
               MyTextField(
+                controller: nameController,
+                hintText: 'Name',
+                obscureText: false,
+              ),
+
+              const SizedBox(height: 10),
+              MyTextField(
                 controller: emailController,
                 hintText: 'Email',
                 obscureText: false,
@@ -71,35 +69,23 @@ class _LoginPageState extends State<LoginPage> {
                 hintText: 'Password',
                 obscureText: true,
               ),
-
-              // login button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-
-              // oauth login buttons
-              const SizedBox(height: 25),
-              MyButton(
-                onTap: () {},
-                text: 'Login',
+              const SizedBox(height: 10),
+              // Confirm password text field
+              MyTextField(
+                controller: confirmPasswordController,
+                hintText: 'Confirm Password',
+                obscureText: true,
               ),
 
               // register button
-              
+              const SizedBox(height: 25),
+              MyButton(onTap: () {}, text: 'Register'),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Not a member?",
+                    "Already a member?",
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.inversePrimary,
                     ),
@@ -108,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                   GestureDetector(
                     onTap: widget.togglePages,
                     child: Text(
-                      "Register now",
+                      "Login now",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
