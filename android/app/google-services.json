@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "239970483650",
+    "project_id": "agendacentury-343cb",
+    "storage_bucket": "agendacentury-343cb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:239970483650:android:aa594176441ba0977daa5b",
+        "android_client_info": {
+          "package_name": "com.lmbibbo.agenda_century"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjKBRLLtoqUbaasUawe5Wbh2CIIOiuc0o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
