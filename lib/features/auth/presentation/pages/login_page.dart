@@ -8,6 +8,7 @@ Login Page
 
 */
 
+import 'package:agenda_century/features/auth/presentation/components/google_sign_in_button.dart';
 import 'package:agenda_century/features/auth/presentation/components/my_button.dart';
 import 'package:agenda_century/features/auth/presentation/components/my_textfield.dart';
 import 'package:agenda_century/features/auth/presentation/cubits/auth_cubit.dart';
@@ -133,13 +134,13 @@ class _LoginPageState extends State<LoginPage> {
                   GestureDetector(
                     onTap: () => openForgotPasswordBox(),
                     child: Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                      "Forgot Password?",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  )
                 ],
               ),
 
@@ -168,6 +169,23 @@ class _LoginPageState extends State<LoginPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              // oath sign (google)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(width: 10),
+
+                  // google button
+                  MyGoogleSignInButton(
+                    onTap: () async {
+                      authCubit.signInGoogle();
+                    },
                   ),
                 ],
               ),

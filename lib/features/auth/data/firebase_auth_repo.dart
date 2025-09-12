@@ -2,9 +2,12 @@
 Firebase Backend for Authentication
 */
 
+import 'dart:async';
+
 import 'package:agenda_century/features/auth/domain/repos/auth_repo.dart';
 import 'package:agenda_century/features/auth/domain/entities/app_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class FirebaseAuthRepo implements AuthRepo {
   // Add your Firebase authentication methods here
@@ -92,10 +95,57 @@ class FirebaseAuthRepo implements AuthRepo {
 
       // sign out user
       await logout();
-
     } catch (e) {
       // Handle errors
       throw Exception('Account deletion failed: $e');
+    }
+  }
+
+  @override
+  Future<AppUser?> signInGoogle() async {
+    try {
+      // 1. Obtener la instancia de GoogleSignIn e inicializarla
+      final GoogleSignIn signIn = GoogleSignIn.instance;
+
+      // Inicializar con los client IDs necesarios (opcional pero recomendado para funcionalidad completa)
+      await signIn.initialize(
+        // clientId: 'TU_CLIENT_ID_ANDROID', // Opcional para Android, a menudo no necesario si usas google-services.json
+        serverClientId:
+            'TU_SERVER_CLIENT_ID', // Necesario para obtener el idToken que Firebase Auth requiere
+      );
+
+      // 2. Iniciar el proceso de autenticación interactiva
+      final GoogleSignInAccount gUser = await signIn.authenticate();
+
+      // 3. Obtener los detalles de autenticación
+      final GoogleSignInAuthentication gAuth = gUser.authentication;
+
+      // 4. Crear una credencial para el usuario utilizando SOLAMENTE el idToken
+      final credential = GoogleAuthProvider.credential(
+        idToken: gAuth
+            .idToken, // ✅ En google_sign_in 7.x, se usa principalmente idToken
+        // accessToken: gAuth.accessToken, // ⚠️ Normalmente no es necesario para Firebase Auth en este flujo
+      );
+
+      // 5. Iniciar sesión en Firebase Auth con la credencial
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential);
+
+      // 6. Obtener el usuario de Firebase
+      if (userCredential.user == null) return null;
+   
+      final firebaseUser = userCredential.user;
+      
+      // 7. Crear y retornar el AppUser
+      AppUser appUser = AppUser(
+        email: firebaseUser!.email ?? '',
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName ?? ''
+      );
+
+      return appUser;
+    } catch (e) {
+      throw ('Error durante el inicio de sesión con Google: $e');
     }
   }
 }
