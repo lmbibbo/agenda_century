@@ -48,12 +48,11 @@ class MyApp extends StatelessWidget {
         */
         home: BlocConsumer<AuthCubit, AuthState>(
           builder: (context, state) {
-            print(state);
             // unauthenticated state -> show AuthPage (login/register)
             if (state is Unauthenticated) {
               return const AuthPage();
             }
-            //authenticated state
+            //authenticated states
             if (state is Authenticated) {
               return const HomePage();
             } else {

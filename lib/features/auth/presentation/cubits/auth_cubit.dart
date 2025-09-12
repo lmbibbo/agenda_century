@@ -58,8 +58,6 @@ class AuthCubit extends Cubit<AuthState> {
         password,
         name,
       );
-      print("User: ");
-      print(user);
       if (user != null) {
         _currentUser = user;
         emit(Authenticated(user));

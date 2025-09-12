@@ -34,8 +34,6 @@ class _RegisterPageState extends State<RegisterPage> {
         confirmPassword.isNotEmpty) {
       // ensure password match
       if (password == confirmPassword) {
-        print(name);
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>");
         authCubit.register(email, password, name);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
