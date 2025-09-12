@@ -27,20 +27,57 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  late final authCubit = context.read<AuthCubit>();
+
   void login() {
     final String email = emailController.text;
     final String password = passwordController.text;
-    
-    final authCubit = context.read<AuthCubit>();
 
     // ensure the fields are filled
     if (email.isNotEmpty && password.isNotEmpty) {
-      authCubit.login(email, password);    
-      
+      authCubit.login(email, password);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter both fields!")));
+        const SnackBar(content: Text("Please enter both fields!")),
+      );
     }
+  }
+
+  void openForgotPasswordBox() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Forgot Password"),
+        content: MyTextField(
+          controller: emailController,
+          hintText: "Enter email....",
+          obscureText: false,
+        ),
+        actions: [
+          // cancel button
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          // Reset button
+          TextButton(
+            onPressed: () async {
+              String message = await authCubit.forgotPassword(
+                emailController.text,
+              );
+              if (message == "Password reset email sent! Check your imbox.") {
+                Navigator.pop(context);
+                emailController.clear();
+              }
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message)));
+            },
+            child: const Text("Reset"),
+          ),
+        ],
+      ),
+    );
   }
 
   // Build UI
@@ -89,26 +126,26 @@ class _LoginPageState extends State<LoginPage> {
                 obscureText: true,
               ),
 
-              // login button
+              // Forgot pw
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
+                  GestureDetector(
+                    onTap: () => openForgotPasswordBox(),
+                    child: Text(
                     "Forgot Password?",
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  )
                 ],
               ),
 
               // oauth login buttons
               const SizedBox(height: 25),
-              MyButton(
-                onTap: login,
-                text: 'Login',
-              ),
+              MyButton(onTap: login, text: 'Login'),
 
               // register button
               const SizedBox(height: 10),

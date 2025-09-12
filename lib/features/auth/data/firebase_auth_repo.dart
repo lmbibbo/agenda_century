@@ -73,7 +73,7 @@ class FirebaseAuthRepo implements AuthRepo {
   Future<String> sendPasswordResetEmail(String email) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
-      return 'Password reset email sent successfully.';
+      return 'Password reset email sent! Check your imbox.';
     } catch (e) {
       // Handle errors
       throw Exception('Password reset email failed: $e');
