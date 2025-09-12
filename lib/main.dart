@@ -1,4 +1,5 @@
 import 'package:agenda_century/features/auth/data/firebase_auth_repo.dart';
+import 'package:agenda_century/features/auth/presentation/components/loading.dart';
 import 'package:agenda_century/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:agenda_century/features/auth/presentation/cubits/auth_states.dart';
 import 'package:agenda_century/features/auth/presentation/pages/auth_page.dart';
@@ -57,7 +58,7 @@ class MyApp extends StatelessWidget {
               return const HomePage();
             } else {
               // loading...
-              return const Center(child: CircularProgressIndicator());
+              return const LoadingScreen();
             }
           },
           listener: (context, state) {

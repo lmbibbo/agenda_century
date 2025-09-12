@@ -8,10 +8,11 @@ Login Page
 
 */
 
-//import 'package:agenda_century/features/auth/presentation/components/my_button.dart';
 import 'package:agenda_century/features/auth/presentation/components/my_button.dart';
 import 'package:agenda_century/features/auth/presentation/components/my_textfield.dart';
+import 'package:agenda_century/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? togglePages;
@@ -25,6 +26,22 @@ class _LoginPageState extends State<LoginPage> {
   // text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  void login() {
+    final String email = emailController.text;
+    final String password = passwordController.text;
+    
+    final authCubit = context.read<AuthCubit>();
+
+    // ensure the fields are filled
+    if (email.isNotEmpty && password.isNotEmpty) {
+      authCubit.login(email, password);    
+      
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter both fields!")));
+    }
+  }
 
   // Build UI
   @override
@@ -89,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
               // oauth login buttons
               const SizedBox(height: 25),
               MyButton(
-                onTap: () {},
+                onTap: login,
                 text: 'Login',
               ),
 
