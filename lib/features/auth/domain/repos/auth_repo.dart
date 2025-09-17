@@ -3,6 +3,8 @@
 Auth Repository
 
 */
+import 'dart:async';
+
 import '../entities/app_user.dart';
 
 abstract class AuthRepo {
@@ -19,6 +21,6 @@ abstract class AuthRepo {
   // delete user
   Future<void> deleteAccount(); 
   // SignInGoogle
-  Future<AppUser?> signInGoogle();
+  Future<AppUser?> signInWithGoogle();
 
 }

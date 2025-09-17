@@ -47,29 +47,31 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBuWZQbJGMvWj_v5IH7TfObY58La9W1ODI',
-    appId: '1:239970483650:web:9a25144036c5751c7daa5b',
-    messagingSenderId: '239970483650',
-    projectId: 'agendacentury-343cb',
-    authDomain: 'agendacentury-343cb.firebaseapp.com',
-    storageBucket: 'agendacentury-343cb.firebasestorage.app',
-    measurementId: 'G-ZBCN4J5BW9',
+    apiKey: 'AIzaSyCU76EITQoNd5c4S3HjJhfTW1eJ8LmP1eU',
+    appId: '1:722020952500:web:af73e1d7e6dfcc6871eae1',
+    messagingSenderId: '722020952500',
+    projectId: 'centurysalas',
+    authDomain: 'centurysalas.firebaseapp.com',
+    storageBucket: 'centurysalas.firebasestorage.app',
+    measurementId: 'G-WPLTD6KNR9',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBjKBRLLtoqUbaasUawe5Wbh2CIIOiuc0o',
-    appId: '1:239970483650:android:aa594176441ba0977daa5b',
-    messagingSenderId: '239970483650',
-    projectId: 'agendacentury-343cb',
-    storageBucket: 'agendacentury-343cb.firebasestorage.app',
+    apiKey: 'AIzaSyBhGlUtbgvx-a40pf1VB_rmNQ5mav9qRUI',
+    appId: '1:722020952500:android:3529ac083c3b2a7271eae1',
+    messagingSenderId: '722020952500',
+    projectId: 'centurysalas',
+    storageBucket: 'centurysalas.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC_Xhu1y6tJkTRbpj33UdO4NfmPvEoOmVQ',
-    appId: '1:239970483650:ios:937e77be35b75c407daa5b',
-    messagingSenderId: '239970483650',
-    projectId: 'agendacentury-343cb',
-    storageBucket: 'agendacentury-343cb.firebasestorage.app',
+    apiKey: 'AIzaSyBFnkU__cghBjASAVFIcy2JE36vPiLaADk',
+    appId: '1:722020952500:ios:73e8c18e24b6288371eae1',
+    messagingSenderId: '722020952500',
+    projectId: 'centurysalas',
+    storageBucket: 'centurysalas.firebasestorage.app',
+    iosClientId: '722020952500-h6cufs73jnsdproilt6m5gv7ti9k1cbu.apps.googleusercontent.com',
     iosBundleId: 'com.lmbibbo.agendaCentury',
   );
+
 }

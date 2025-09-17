@@ -1,26 +1,43 @@
 {
   "project_info": {
-    "project_number": "239970483650",
-    "project_id": "agendacentury-343cb",
-    "storage_bucket": "agendacentury-343cb.firebasestorage.app"
+    "project_number": "722020952500",
+    "project_id": "centurysalas",
+    "storage_bucket": "centurysalas.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:239970483650:android:aa594176441ba0977daa5b",
+        "mobilesdk_app_id": "1:722020952500:android:3529ac083c3b2a7271eae1",
         "android_client_info": {
           "package_name": "com.lmbibbo.agenda_century"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "722020952500-fol3lqcavu2m27a9s14rs45f3ef4jc6q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyBjKBRLLtoqUbaasUawe5Wbh2CIIOiuc0o"
+          "current_key": "AIzaSyBhGlUtbgvx-a40pf1VB_rmNQ5mav9qRUI"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "722020952500-fol3lqcavu2m27a9s14rs45f3ef4jc6q.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "722020952500-h6cufs73jnsdproilt6m5gv7ti9k1cbu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.lmbibbo.agendaCentury"
+              }
+            }
+          ]
         }
       }
     }
