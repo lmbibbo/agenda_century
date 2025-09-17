@@ -12,6 +12,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 class FirebaseAuthRepo implements AuthRepo {
   // Add your Firebase authentication methods here
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  static final GoogleSignIn _googleSignIn = GoogleSignIn();
   
   @override
   Future<AppUser?> loginWithEmailAndPassword(
@@ -57,6 +58,7 @@ class FirebaseAuthRepo implements AuthRepo {
   @override
   Future<void> logout() async {
     await _firebaseAuth.signOut();
+    await _googleSignIn.signOut();
   }
 
   @override
@@ -106,7 +108,7 @@ class FirebaseAuthRepo implements AuthRepo {
   Future<AppUser?> signInWithGoogle() async {
     try {
       // begin the interactive sign-in process
-      final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
+      final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
 
       // user cancelled sign-in
       if (gUser == null) return null;
@@ -114,6 +116,7 @@ class FirebaseAuthRepo implements AuthRepo {
       // obtain auth details from request
       final GoogleSignInAuthentication gAuth = await gUser.authentication;
 
+      
       // create a credential for the user
       final credential = GoogleAuthProvider.credential(
         accessToken: gAuth.accessToken,
