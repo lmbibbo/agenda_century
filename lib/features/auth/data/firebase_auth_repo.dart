@@ -3,7 +3,7 @@ Firebase Backend for Authentication
 */
 
 import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:agenda_century/features/auth/domain/repos/auth_repo.dart';
 import 'package:agenda_century/features/auth/domain/entities/app_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,7 +13,7 @@ class FirebaseAuthRepo implements AuthRepo {
   // Add your Firebase authentication methods here
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   static final GoogleSignIn _googleSignIn = GoogleSignIn();
-  
+
   @override
   Future<AppUser?> loginWithEmailAndPassword(
     String email,
@@ -58,7 +58,10 @@ class FirebaseAuthRepo implements AuthRepo {
   @override
   Future<void> logout() async {
     await _firebaseAuth.signOut();
-    await _googleSignIn.signOut();
+    // Solo hacer signOut de Google SignIn si NO es web
+    if (!kIsWeb) {
+      await _googleSignIn.signOut();
+    }
   }
 
   @override
@@ -103,45 +106,66 @@ class FirebaseAuthRepo implements AuthRepo {
     }
   }
 
- // GOOGLE SIGN IN
+  // GOOGLE SIGN IN
   @override
   Future<AppUser?> signInWithGoogle() async {
     try {
-      // begin the interactive sign-in process
-      final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
+      // Para Flutter Web, usa signInWithPopup
+      if (kIsWeb) {
+        UserCredential userCredential;
 
-      // user cancelled sign-in
-      if (gUser == null) return null;
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-      // obtain auth details from request
-      final GoogleSignInAuthentication gAuth = await gUser.authentication;
+        // ✅ ESTO ES CLAVE: Forzar selección de cuenta siempre
+        googleProvider.setCustomParameters({'prompt': 'select_account'});
 
-      
-      // create a credential for the user
-      final credential = GoogleAuthProvider.credential(
-        accessToken: gAuth.accessToken,
-        idToken: gAuth.idToken,
-      );
+        userCredential = await _firebaseAuth.signInWithPopup(googleProvider);
+        final firebaseUser = userCredential.user;
+        if (firebaseUser == null) return null;
 
-      // sign in with these credentials
-      UserCredential userCredential =
-          await _firebaseAuth.signInWithCredential(credential);
+        AppUser appUser = AppUser(
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          name: firebaseUser.displayName ?? '',
+        );
 
-      // firebase user
-      final firebaseUser = userCredential.user;
+        return appUser;
+      } else {
+        // begin the interactive sign-in process
+        final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
 
-      // user cancelled sign-in process
-      if (firebaseUser == null) return null;
+        // user cancelled sign-in
+        if (gUser == null) return null;
 
-      AppUser appUser = AppUser(
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        name: firebaseUser.displayName ?? '',
-      );
+        // obtain auth details from request
+        final GoogleSignInAuthentication gAuth = await gUser.authentication;
 
-      return appUser;
+        // create a credential for the user
+        final credential = GoogleAuthProvider.credential(
+          accessToken: gAuth.accessToken,
+          idToken: gAuth.idToken,
+        );
+
+        // sign in with these credentials
+        UserCredential userCredential = await _firebaseAuth
+            .signInWithCredential(credential);
+
+        // firebase user
+        final firebaseUser = userCredential.user;
+
+        // user cancelled sign-in process
+        if (firebaseUser == null) return null;
+
+        AppUser appUser = AppUser(
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          name: firebaseUser.displayName ?? '',
+        );
+
+        return appUser;
+      }
     } catch (e) {
-        print(e);
+      print('Error en Google Sign-In: $e');
       return null;
     }
   }
