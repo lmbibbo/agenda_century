@@ -117,7 +117,10 @@ class FirebaseAuthRepo implements AuthRepo {
         GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
         // ✅ ESTO ES CLAVE: Forzar selección de cuenta siempre
-        googleProvider.setCustomParameters({'prompt': 'select_account'});
+        googleProvider.setCustomParameters({
+          'prompt': 'select_account',
+          'client_id': '722020952500-vhmb4h17660ksbt18mksb6iqusuqko75.apps.googleusercontent.com'
+        });
 
         userCredential = await _firebaseAuth.signInWithPopup(googleProvider);
         final firebaseUser = userCredential.user;
@@ -165,7 +168,7 @@ class FirebaseAuthRepo implements AuthRepo {
         return appUser;
       }
     } catch (e) {
-      print('Error en Google Sign-In: $e');
+        print('Error en Google Sign-In: $e');
       return null;
     }
   }
