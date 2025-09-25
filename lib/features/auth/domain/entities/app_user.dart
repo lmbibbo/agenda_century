@@ -2,6 +2,7 @@ class AppUser {
   final String id;
   final String email;
   final String name;
+  String? _accessToken;
 
   AppUser({
     required this.id,
@@ -25,5 +26,15 @@ class AppUser {
       email: json['email'],
       name: json['name'],
     );
+  }
+
+  set accessToken(String value) {
+    if (value.isNotEmpty){
+      _accessToken = value;
+    }
+  }
+
+  String? getAccessToken(){
+    return _accessToken;
   }
 }

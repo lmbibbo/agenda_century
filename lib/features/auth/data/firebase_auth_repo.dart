@@ -119,7 +119,7 @@ class FirebaseAuthRepo implements AuthRepo {
         // ✅ ESTO ES CLAVE: Forzar selección de cuenta siempre
         googleProvider.setCustomParameters({
           'prompt': 'select_account',
-          'client_id': '722020952500-vhmb4h17660ksbt18mksb6iqusuqko75.apps.googleusercontent.com'
+          //'client_id': '722020952500-vhmb4h17660ksbt18mksb6iqusuqko75.apps.googleusercontent.com'
         });
 
         userCredential = await _firebaseAuth.signInWithPopup(googleProvider);
@@ -132,6 +132,9 @@ class FirebaseAuthRepo implements AuthRepo {
           name: firebaseUser.displayName ?? '',
         );
 
+        final String? accessToken = (userCredential.credential as OAuthCredential).accessToken;      
+        appUser.accessToken=accessToken!;
+        
         return appUser;
       } else {
         // begin the interactive sign-in process
@@ -164,6 +167,7 @@ class FirebaseAuthRepo implements AuthRepo {
           email: firebaseUser.email ?? '',
           name: firebaseUser.displayName ?? '',
         );
+        appUser.accessToken=credential.accessToken!;
 
         return appUser;
       }

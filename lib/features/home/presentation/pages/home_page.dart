@@ -90,7 +90,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'UID: ${user.id}',
+                            'UID: ${user.getAccessToken()}',
                             style: const TextStyle(
                               fontSize: 12,
                               fontFamily: 'monospace',
