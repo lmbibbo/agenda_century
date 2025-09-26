@@ -8,6 +8,7 @@ import 'package:agenda_century/features/auth/domain/repos/auth_repo.dart';
 import 'package:agenda_century/features/auth/domain/entities/app_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/calendar/v3.dart';
 
 class FirebaseAuthRepo implements AuthRepo {
   // Add your Firebase authentication methods here
@@ -122,6 +123,10 @@ class FirebaseAuthRepo implements AuthRepo {
           //'client_id': '722020952500-vhmb4h17660ksbt18mksb6iqusuqko75.apps.googleusercontent.com'
         });
 
+        googleProvider.addScope(CalendarApi.calendarScope);
+        googleProvider.addScope(CalendarApi.calendarReadonlyScope);
+        googleProvider.addScope(CalendarApi.calendarEventsScope);
+        
         userCredential = await _firebaseAuth.signInWithPopup(googleProvider);
         final firebaseUser = userCredential.user;
         if (firebaseUser == null) return null;

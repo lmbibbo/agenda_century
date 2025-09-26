@@ -39,6 +39,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   google_sign_in: ^6.2.2
   googleapis: ^14.0.0
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:
