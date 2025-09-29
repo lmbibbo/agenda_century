@@ -136,9 +136,7 @@ class FirebaseAuthRepo implements AuthRepo {
           email: firebaseUser.email ?? '',
           name: firebaseUser.displayName ?? '',
         );
-
-        final String? accessToken = (userCredential.credential as OAuthCredential).accessToken;      
-        appUser.accessToken=accessToken!;
+        appUser.accessToken=(userCredential.credential as OAuthCredential).accessToken!;
         
         return appUser;
       } else {
