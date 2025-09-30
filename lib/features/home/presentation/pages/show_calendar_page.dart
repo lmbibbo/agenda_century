@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:http/http.dart' as http;
 import '../../services/calendar_service.dart';
 
 class ShowCalendarPage extends StatefulWidget {
@@ -179,16 +178,6 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     );
     print('_weekDays: Generada semana con ${days.length} días');
     return days;
-  }
-
-  List<Map<String, int>> get _hourSlots {
-    final slots = List.generate(28, (index) {
-      final hour = 7 + (index ~/ 2);
-      final minutes = (index % 2) * 30;
-      return {'hour': hour, 'minutes': minutes};
-    });
-    print('_hourSlots: Generados ${slots.length} slots horarios');
-    return slots;
   }
 
   List<Event> get _filteredEvents {
@@ -576,25 +565,170 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   Widget _buildWeeklyView() {
-    print('_buildWeeklyView: Construyendo vista semanal');
+    print(
+      '_buildWeeklyView: Construyendo vista semanal con ${_filteredEvents.length} eventos',
+    );
     return Container(
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 255, 255, 255),
+        color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
           // Encabezado de días
           _buildWeekHeader(),
-          Expanded(
-            child: ListView(
-              children: [
-                ..._hourSlots.map((slot) {
-                  return _buildTimeSlotRow(slot);
-                }).toList(),
-              ],
-            ),
+          Expanded(child: _buildWeeklyCalendar()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyCalendar() {
+    return SingleChildScrollView(
+      child: Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            left: BorderSide(color: Color(0xFFdddddd), width: 1.0),
+            right: BorderSide(color: Color(0xFFdddddd), width: 1.0),
           ),
+        ),
+        child: Column(
+          children: [
+            // Grid de tiempo con eventos
+            Container(
+              height: _hourSlots.length * 40.0,
+              child: Stack(
+                children: [
+                  // Grid de fondo (horas)
+                  _buildTimeGrid(),
+                  // Eventos posicionados absolutamente
+                  ..._buildAllEvents(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeGrid() {
+    return Column(
+      children: _hourSlots.map((slot) {
+        return _buildTimeSlotRow(slot);
+      }).toList(),
+    );
+  }
+
+  List<Widget> _buildAllEvents() {
+    final eventWidgets = <Widget>[];
+
+    for (final event in _filteredEvents) {
+      final eventStart = event.start?.dateTime;
+      if (eventStart == null) continue;
+
+      // Encontrar en qué día de la semana cae el evento
+      final dayIndex = _weekDays.indexWhere(
+        (day) =>
+            day.year == eventStart.year &&
+            day.month == eventStart.month &&
+            day.day == eventStart.day,
+      );
+
+      if (dayIndex >= 0) {
+        final position = _calculateEventPosition(event, dayIndex);
+        if (position != null) {
+          eventWidgets.add(
+            Positioned(
+              left: position['left'],
+              top: position['top'],
+              width: position['width'],
+              height: position['height'],
+              child: _buildWeeklyEventItem(event),
+            ),
+          );
+        }
+      }
+    }
+
+    print('_buildAllEvents: ${eventWidgets.length} widgets de eventos creados');
+    return eventWidgets;
+  }
+
+  Map<String, double>? _calculateEventPosition(Event event, int dayIndex) {
+    final eventStart = event.start?.dateTime;
+    final eventEnd = event.end?.dateTime;
+
+    if (eventStart == null || eventEnd == null) return null;
+
+    // Calcular posición horizontal
+    final dayColumnWidth = (MediaQuery.of(context).size.width - 80) / 7;
+    final left = 60.0 + (dayIndex * dayColumnWidth) + 2.0; // +2 para margen
+
+    // Calcular posición vertical basada en la hora
+    final startHour = eventStart.hour + (eventStart.minute / 60.0);
+    final endHour = eventEnd.hour + (eventEnd.minute / 60.0);
+    final durationHours = endHour - startHour;
+
+    // Convertir a píxeles (cada hora = 160px, cada 15min = 40px)
+    final top = (startHour - 6.0) * 160.0; // Comenzar desde las 6 AM
+    final height = durationHours * 160.0;
+
+    // Asegurar que la altura mínima sea visible
+    final minHeight = 20.0;
+    final adjustedHeight = height < minHeight ? minHeight : height;
+
+    return {
+      'left': left,
+      'top': top,
+      'width': dayColumnWidth - 4.0, // -4 para márgenes
+      'height': adjustedHeight,
+    };
+  }
+
+  Widget _buildWeeklyEventItem(Event event) {
+    final isPast = event.end?.dateTime?.isBefore(DateTime.now()) ?? false;
+    final eventStart = event.start?.dateTime;
+    final eventEnd = event.end?.dateTime;
+
+    String formatTime(DateTime? dateTime) {
+      if (dateTime == null) return '';
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isPast ? const Color(0xFFf0f0f0) : const Color(0xFFe6f2ff),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: isPast ? const Color(0xFF999999) : const Color(0xFF007AFF),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            event.summary ?? 'Evento',
+            style: TextStyle(
+              fontSize: 10,
+              color: isPast ? const Color(0xFF666666) : const Color(0xFF333333),
+              fontWeight: FontWeight.bold,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+          if (eventStart != null)
+            Text(
+              formatTime(eventStart),
+              style: TextStyle(
+                fontSize: 8,
+                color: isPast
+                    ? const Color(0xFF888888)
+                    : const Color(0xFF007AFF),
+              ),
+            ),
         ],
       ),
     );
@@ -605,14 +739,22 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFdddddd))),
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFdddddd), width: 1.0),
+          top: BorderSide(color: Color(0xFFdddddd), width: 1.0),
+        ),
       ),
       child: Row(
         children: [
-          // Celda de hora
+          // Celda de hora con borde derecho
           Container(
             width: 60,
             alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              border: Border(
+                right: BorderSide(color: Color(0xFFdddddd), width: 1.0),
+              ),
+            ),
             child: const Text(
               'Hora',
               style: TextStyle(
@@ -621,21 +763,27 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
               ),
             ),
           ),
-          // Días de la semana
-          ..._weekDays.map((day) {
+
+          // Días de la semana con bordes verticales
+          ..._weekDays.asMap().entries.map((entry) {
+            final index = entry.key;
+            final day = entry.value;
             final isToday =
                 day.day == DateTime.now().day &&
                 day.month == DateTime.now().month &&
                 day.year == DateTime.now().year;
+
             return Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   color: isToday
                       ? const Color(0xFFb3e0ff)
-                      : const Color(0xFFf0f0f0),
-                  border: const Border(
-                    right: BorderSide(color: Color(0xFFdddddd)),
+                      : const Color(0xFFf8f8f8),
+                  border: Border(
+                    right: index < 6
+                        ? const BorderSide(color: Color(0xFFdddddd), width: 1.0)
+                        : BorderSide.none, // Última columna sin borde derecho
                   ),
                 ),
                 child: Column(
@@ -648,7 +796,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
                       ),
                     ),
                     Text(
-                      DateFormat('d MMM', 'es_ES').format(day),
+                      DateFormat('d', 'es_ES').format(day),
                       style: const TextStyle(fontSize: 12),
                     ),
                   ],
@@ -662,18 +810,37 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   Widget _buildTimeSlotRow(Map<String, int> slot) {
+    final showHourLabel = slot['minutes'] == 0;
+
     return Container(
       height: 40,
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFeeeeee))),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: slot['minutes'] == 0
+              ? const BorderSide(
+                  color: Color(0xFFdddddd),
+                  width: 1.0,
+                ) // Línea más gruesa cada hora
+              : const BorderSide(
+                  color: Color(0xFFf0f0f0),
+                  width: 0.5,
+                ), // Línea sutil cada 15 min
+        ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Hora
+          // Columna de horas
           Container(
             width: 60,
-            alignment: Alignment.center,
-            child: slot['minutes'] == 0
+            padding: const EdgeInsets.only(right: 8, top: 4),
+            alignment: Alignment.topCenter,
+            decoration: const BoxDecoration(
+              border: Border(
+                right: BorderSide(color: Color(0xFFdddddd), width: 1.0),
+              ),
+            ),
+            child: showHourLabel
                 ? Text(
                     '${slot['hour']!.toString().padLeft(2, '0')}:00',
                     style: const TextStyle(
@@ -684,17 +851,130 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
                   )
                 : null,
           ),
-          // Celdas de días
-          ..._weekDays.map((day) {
+
+          // Columnas de días - solo contenido sin bordes laterales
+          ...List.generate(7, (index) {
             return Expanded(
               child: Container(
-                decoration: const BoxDecoration(
-                  border: Border(right: BorderSide(color: Color(0xFFeeeeee))),
-                ),
-                // Aquí irían los eventos para esta celda
+                // Sin bordes laterales aquí, los manejaremos en el header
               ),
             );
-          }).toList(),
+          }),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, int>> get _hourSlots {
+    final slots = List.generate(48, (index) {
+      // 12 horas * 4 slots por hora = 48 slots
+      final hour = 6 + (index ~/ 4); // Comenzar desde las 6 AM hasta las 18 PM
+      final minutes = (index % 4) * 15;
+      return {'hour': hour, 'minutes': minutes};
+    });
+    print(
+      '_hourSlots: Generados ${slots.length} slots horarios (15 min cada uno)',
+    );
+    return slots;
+  }
+
+  List<Event> _getEventsForTimeSlot(DateTime day, Map<String, int> slot) {
+    final slotStart = DateTime(
+      day.year,
+      day.month,
+      day.day,
+      slot['hour']!,
+      slot['minutes']!,
+    );
+    final slotEnd = slotStart.add(const Duration(minutes: 15));
+
+    return _filteredEvents.where((event) {
+      final eventStart = event.start?.dateTime;
+      final eventEnd = event.end?.dateTime;
+
+      if (eventStart == null || eventEnd == null) return false;
+
+      // Verificar si el evento se superpone con este slot de 15 minutos
+      return (eventStart.isBefore(slotEnd) && eventEnd.isAfter(slotStart));
+    }).toList();
+  }
+
+  Map<String, dynamic> _getEventPosition(Event event, DateTime day) {
+    final eventStart = event.start?.dateTime;
+    final eventEnd = event.end?.dateTime;
+
+    if (eventStart == null || eventEnd == null) {
+      return {'height': 40, 'top': 0, 'span': 1};
+    }
+
+    // Calcular duración en minutos
+    final duration = eventEnd.difference(eventStart).inMinutes;
+
+    // Calcular posición vertical basada en la hora de inicio
+    final startMinutes = eventStart.hour * 60 + eventStart.minute;
+    final startSlot =
+        (startMinutes - (6 * 60)) / 15; // Restar 6 AM (hora de inicio)
+
+    // Altura en slots de 15 minutos (mínimo 1 slot = 15 minutos)
+    final span = (duration / 15).ceil().clamp(1, 1000);
+
+    return {
+      'height': span * 40, // 40px por slot de 15 minutos
+      'top': startSlot * 40,
+      'span': span,
+    };
+  }
+
+  Widget _buildEventCell(List<Event> events, DateTime slotTime) {
+    if (events.isEmpty) {
+      return Container();
+    }
+
+    // Ordenar eventos por hora de inicio
+    events.sort(
+      (a, b) => (a.start?.dateTime ?? DateTime.now()).compareTo(
+        b.end?.dateTime ?? DateTime.now(),
+      ),
+    );
+
+    final event = events.first; // Mostrar solo el primer evento por simplicidad
+    final isPast = event.end?.dateTime?.isBefore(DateTime.now()) ?? false;
+
+    return Container(
+      margin: const EdgeInsets.all(1),
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: isPast ? const Color(0xFFf0f0f0) : const Color(0xFFe6f2ff),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: isPast ? const Color(0xFF999999) : const Color(0xFF007AFF),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            event.summary ?? 'Evento',
+            style: TextStyle(
+              fontSize: 9,
+              color: isPast ? const Color(0xFF666666) : const Color(0xFF333333),
+              fontWeight: FontWeight.bold,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+            textAlign: TextAlign.center,
+          ),
+          if (event.start?.dateTime != null)
+            Text(
+              DateFormat('HH:mm').format(event.start!.dateTime!),
+              style: TextStyle(
+                fontSize: 8,
+                color: isPast
+                    ? const Color(0xFF888888)
+                    : const Color(0xFF007AFF),
+              ),
+            ),
         ],
       ),
     );
