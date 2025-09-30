@@ -105,7 +105,8 @@ class _HomePageState extends State<HomePage> {
       return ShowCalendarPage(
         calendarId: _selectedCalendar?.id ?? '',
         calendar: _selectedCalendar,
-        togglePages: _onBackToList
+        togglePages: _onBackToList,
+        calendarService: _calendarService,
       );
     }
   }

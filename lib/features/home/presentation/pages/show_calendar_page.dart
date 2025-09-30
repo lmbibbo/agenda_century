@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:http/http.dart' as http;
+import '../../services/calendar_service.dart';
 
 class ShowCalendarPage extends StatefulWidget {
   final void Function()? togglePages;
   final String calendarId;
   final CalendarListEntry? calendar;
+  final CalendarService calendarService; // Recibir el servicio
 
-  const ShowCalendarPage({ 
-    super.key, 
-    this.togglePages, 
+  const ShowCalendarPage({
+    super.key,
+    this.togglePages,
     required this.calendarId,
     this.calendar,
+    required this.calendarService,
   });
 
   @override
@@ -33,22 +37,30 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     super.initState();
     print('ShowCalendarPage: initState llamado');
     print('ShowCalendarPage: calendarId = ${widget.calendarId}');
-    print('ShowCalendarPage: calendar name = ${widget.calendar?.summary ?? "N/A"}');
+    print(
+      'ShowCalendarPage: calendar name = ${widget.calendar?.summary ?? "N/A"}',
+    );
 
     _initializeDateFormatting();
   }
 
   Future<void> _initializeDateFormatting() async {
     try {
-      print('_initializeDateFormatting: Inicializando formato de fechas para español');
+      print(
+        '_initializeDateFormatting: Inicializando formato de fechas para español',
+      );
       await initializeDateFormatting('es_ES');
       setState(() {
         _dateFormatInitialized = true;
       });
-      print('_initializeDateFormatting: Formato de fechas inicializado correctamente');
+      print(
+        '_initializeDateFormatting: Formato de fechas inicializado correctamente',
+      );
       _fetchEvents();
     } catch (e) {
-      print('_initializeDateFormatting: Error inicializando formato de fechas: $e');
+      print(
+        '_initializeDateFormatting: Error inicializando formato de fechas: $e',
+      );
       // Fallback: intentar cargar eventos de todos modos
       _fetchEvents();
     }
@@ -59,51 +71,68 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       print('_fetchEvents: Ya se está refrescando, ignorando llamada');
       return;
     }
-    
+
     print('_fetchEvents: Iniciando carga de eventos');
-    print('_fetchEvents: _viewMode = $_viewMode, _weekOffset = $_weekOffset, _dayOffset = $_dayOffset');
-    
+    print(
+      '_fetchEvents: _viewMode = $_viewMode, _weekOffset = $_weekOffset, _dayOffset = $_dayOffset',
+    );
+
     setState(() {
       _loading = true;
       _refreshing = true;
     });
 
     try {
-      // TODO: Implementar la llamada a la API de Google Calendar
-      // Similar a tu función fetchEvents en React Native
-      print('_fetchEvents: Simulando llamada a API...');
-      await Future.delayed(const Duration(seconds: 1)); // Simulación
-      
-      // Ejemplo de datos mock
-      _events = [
-        Event(
-          id: '1',
-          summary: 'Reunión de equipo',
-          start: EventDateTime(
-            dateTime: DateTime.now().add(const Duration(hours: 2)),
-          ),
-          end: EventDateTime(
-            dateTime: DateTime.now().add(const Duration(hours: 3)),
-          ),
-        ),
-        Event(
-          id: '2',
-          summary: 'Almuerzo con cliente',
-          start: EventDateTime(
-            dateTime: DateTime.now().add(const Duration(days: 1)),
-          ),
-          end: EventDateTime(
-            dateTime: DateTime.now().add(const Duration(days: 1, hours: 2)),
-          ),
-        ),
-      ];
-      
+      DateTime timeMin;
+      DateTime timeMax;
+
+      if (_viewMode == 'diaria') {
+        timeMin = _currentDay;
+        timeMax = _currentDay.add(const Duration(days: 1));
+      } else {
+        timeMin = _weekStart;
+        timeMax = _weekStart.add(const Duration(days: 7));
+      }
+
+      // Ajustar horas
+      timeMin = DateTime(timeMin.year, timeMin.month, timeMin.day, 7, 0, 0, 0);
+      timeMax = DateTime(
+        timeMax.year,
+        timeMax.month,
+        timeMax.day,
+        20,
+        59,
+        59,
+        999,
+      );
+
+      print('_fetchEvents: timeMin: $timeMin, timeMax: $timeMax');
+
+      // Usar el servicio para obtener eventos
+      final events = await widget.calendarService.getEvents(
+        calendarId: widget.calendarId,
+        timeMin: timeMin,
+        timeMax: timeMax,
+        maxResults: 100,
+        singleEvents: true,
+        orderBy: 'startTime',
+      );
+
+      setState(() {
+        _events = events;
+      });
+
       print('_fetchEvents: ${_events.length} eventos cargados exitosamente');
       for (var event in _events) {
         print('  - ${event.summary} (${event.start?.dateTime})');
       }
     } catch (e) {
       print('_fetchEvents: Error fetching events: $e');
+      // Mostrar error al usuario
+      _showErrorDialog('Error al cargar eventos: $e');
+      setState(() {
+        _events = [];
+      });
     } finally {
       print('_fetchEvents: Finalizando carga, actualizando estado');
       setState(() {
@@ -111,6 +140,22 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         _refreshing = false;
       });
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   DateTime get _weekStart {
@@ -128,8 +173,9 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   List<DateTime> get _weekDays {
-    final days = List.generate(7, (index) => 
-      _weekStart.add(Duration(days: index))
+    final days = List.generate(
+      7,
+      (index) => _weekStart.add(Duration(days: index)),
     );
     print('_weekDays: Generada semana con ${days.length} días');
     return days;
@@ -154,34 +200,42 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         return false;
       }
 
-      final startDate =  start;
+      final startDate = start;
 
       if (_viewMode == 'diaria') {
-        final matches = startDate.year == _currentDay.year &&
-               startDate.month == _currentDay.month &&
-               startDate.day == _currentDay.day;
+        final matches =
+            startDate.year == _currentDay.year &&
+            startDate.month == _currentDay.month &&
+            startDate.day == _currentDay.day;
         if (matches) {
           print('_filteredEvents: Evento incluido (diario) - ${event.summary}');
         }
         return matches;
       } else {
         final endOfWeek = _weekStart.add(const Duration(days: 7));
-        final matches = startDate.isAfter(_weekStart) && startDate.isBefore(endOfWeek);
+        final matches =
+            startDate.isAfter(_weekStart) && startDate.isBefore(endOfWeek);
         if (matches) {
-          print('_filteredEvents: Evento incluido (semanal) - ${event.summary}');
+          print(
+            '_filteredEvents: Evento incluido (semanal) - ${event.summary}',
+          );
         }
         return matches;
       }
     }).toList();
-    
-    print('_filteredEvents: ${filtered.length} eventos filtrados de ${_events.length} totales');
+
+    print(
+      '_filteredEvents: ${filtered.length} eventos filtrados de ${_events.length} totales',
+    );
     return filtered;
   }
 
   @override
   Widget build(BuildContext context) {
-    print('build: Reconstruyendo widget (_loading: $_loading, _events: ${_events.length})');
-    
+    print(
+      'build: Reconstruyendo widget (_loading: $_loading, _events: ${_events.length})',
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFf5f5f5),
       body: SafeArea(
@@ -192,23 +246,21 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
               // Header
               _buildHeader(),
               const SizedBox(height: 15),
-              
+
               // Selector de vista y botón agregar
               _buildActionsRow(),
               const SizedBox(height: 10),
-              
+
               // Navegación semanal/diaria
               _buildNavigation(),
               const SizedBox(height: 10),
-              
+
               // Subtítulo
               _buildSubtitle(),
               const SizedBox(height: 10),
-              
+
               // Vista del calendario
-              Expanded(
-                child: _buildCalendarView(),
-              ),
+              Expanded(child: _buildCalendarView()),
             ],
           ),
         ),
@@ -244,7 +296,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
             ),
           ),
         ),
-        
+
         // Título
         Expanded(
           child: Text(
@@ -257,7 +309,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
             ),
           ),
         ),
-        
+
         // Espacio para alineación
         const SizedBox(width: 80),
       ],
@@ -275,15 +327,12 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
-            children: [
-              _buildViewButton('diaria'),
-              _buildViewButton('semanal'),
-            ],
+            children: [_buildViewButton('diaria'), _buildViewButton('semanal')],
           ),
         ),
-        
+
         const Spacer(),
-        
+
         // Botón agregar evento
         ElevatedButton(
           onPressed: () {
@@ -310,8 +359,10 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
 
   Widget _buildViewButton(String mode) {
     final isSelected = _viewMode == mode;
-    print('_buildViewButton: Construyendo botón para $mode (seleccionado: $isSelected)');
-    
+    print(
+      '_buildViewButton: Construyendo botón para $mode (seleccionado: $isSelected)',
+    );
+
     return GestureDetector(
       onTap: () {
         print('_buildViewButton: Cambiando vista a $mode');
@@ -320,13 +371,17 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color.fromARGB(0, 0, 132, 255) : Color.fromARGB(255, 255, 255, 255),
+          color: isSelected
+              ? const Color.fromARGB(0, 0, 132, 255)
+              : Color.fromARGB(255, 255, 255, 255),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           mode == 'diaria' ? 'Diaria' : 'Semanal',
           style: TextStyle(
-            color: isSelected ? Color.fromARGB(255, 255, 255, 255) : const Color(0xFF333333),
+            color: isSelected
+                ? Color.fromARGB(255, 255, 255, 255)
+                : const Color(0xFF333333),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -334,9 +389,9 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     );
   }
 
- Widget _buildNavigation() {
+  Widget _buildNavigation() {
     print('_buildNavigation: Construyendo navegación (_viewMode: $_viewMode)');
-    
+
     // Si no se ha inicializado el formato de fechas, mostrar un placeholder
     if (!_dateFormatInitialized) {
       return Container(
@@ -384,29 +439,31 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
               setState(() {
                 if (_viewMode == 'diaria') {
                   _dayOffset--;
-                  print('_buildNavigation: _dayOffset decrementado a $_dayOffset');
+                  print(
+                    '_buildNavigation: _dayOffset decrementado a $_dayOffset',
+                  );
                 } else {
                   _weekOffset--;
-                  print('_buildNavigation: _weekOffset decrementado a $_weekOffset');
+                  print(
+                    '_buildNavigation: _weekOffset decrementado a $_weekOffset',
+                  );
                 }
               });
               _fetchEvents();
             },
             icon: const Icon(Icons.arrow_back, color: Color(0xFF007AFF)),
           ),
-          
+
           // Etiqueta
           Text(
-            _viewMode == 'diaria'
-                ? _getFormattedDay()
-                : _getFormattedWeek(),
+            _viewMode == 'diaria' ? _getFormattedDay() : _getFormattedWeek(),
             style: const TextStyle(
               color: Color(0xFF333333),
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           // Botón siguiente
           IconButton(
             onPressed: () {
@@ -414,10 +471,14 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
               setState(() {
                 if (_viewMode == 'diaria') {
                   _dayOffset++;
-                  print('_buildNavigation: _dayOffset incrementado a $_dayOffset');
+                  print(
+                    '_buildNavigation: _dayOffset incrementado a $_dayOffset',
+                  );
                 } else {
                   _weekOffset++;
-                  print('_buildNavigation: _weekOffset incrementado a $_weekOffset');
+                  print(
+                    '_buildNavigation: _weekOffset incrementado a $_weekOffset',
+                  );
                 }
               });
               _fetchEvents();
@@ -434,7 +495,9 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       return DateFormat('EEEE, d MMM', 'es_ES').format(_currentDay);
     } catch (e) {
       print('_getFormattedDay: Error formateando día: $e');
-      return DateFormat('EEEE, d MMM').format(_currentDay); // Fallback sin locale
+      return DateFormat(
+        'EEEE, d MMM',
+      ).format(_currentDay); // Fallback sin locale
     }
   }
 
@@ -446,7 +509,6 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       return 'Semana del ${DateFormat('d MMM').format(_weekDays[0])} al ${DateFormat('d MMM').format(_weekDays[6])}'; // Fallback sin locale
     }
   }
-
 
   Widget _buildSubtitle() {
     print('_buildSubtitle: Construyendo subtítulo');
@@ -461,8 +523,10 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   Widget _buildCalendarView() {
-    print('_buildCalendarView: Construyendo vista de calendario (_loading: $_loading, _events: ${_events.length})');
-    
+    print(
+      '_buildCalendarView: Construyendo vista de calendario (_loading: $_loading, _events: ${_events.length})',
+    );
+
     if (_loading && _events.isEmpty) {
       print('_buildCalendarView: Mostrando indicador de carga');
       return const Center(child: CircularProgressIndicator());
@@ -475,14 +539,14 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         return _fetchEvents();
       },
       color: const Color(0xFF007AFF),
-      child: _viewMode == 'diaria' 
-          ? _buildDailyView()
-          : _buildWeeklyView(),
+      child: _viewMode == 'diaria' ? _buildDailyView() : _buildWeeklyView(),
     );
   }
 
   Widget _buildDailyView() {
-    print('_buildDailyView: Construyendo vista diaria con ${_filteredEvents.length} eventos');
+    print(
+      '_buildDailyView: Construyendo vista diaria con ${_filteredEvents.length} eventos',
+    );
     return ListView(
       children: [
         Container(
@@ -559,15 +623,20 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
           ),
           // Días de la semana
           ..._weekDays.map((day) {
-            final isToday = day.day == DateTime.now().day &&
-                           day.month == DateTime.now().month &&
-                           day.year == DateTime.now().year;
+            final isToday =
+                day.day == DateTime.now().day &&
+                day.month == DateTime.now().month &&
+                day.year == DateTime.now().year;
             return Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: isToday ? const Color(0xFFb3e0ff) : const Color(0xFFf0f0f0),
-                  border: const Border(right: BorderSide(color: Color(0xFFdddddd))),
+                  color: isToday
+                      ? const Color(0xFFb3e0ff)
+                      : const Color(0xFFf0f0f0),
+                  border: const Border(
+                    right: BorderSide(color: Color(0xFFdddddd)),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -580,9 +649,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
                     ),
                     Text(
                       DateFormat('d MMM', 'es_ES').format(day),
-                      style: const TextStyle(
-                        fontSize: 12,
-                      ),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ],
                 ),
@@ -633,14 +700,16 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     );
   }
 
- // En _buildEventItem, actualiza el formato de hora:
+  // En _buildEventItem, actualiza el formato de hora:
   Widget _buildEventItem(Event event) {
     final isPast = event.end?.dateTime?.isBefore(DateTime.now()) ?? false;
     final start = event.start?.dateTime;
     final end = event.end?.dateTime;
-    
-    print('_buildEventItem: Construyendo evento - ${event.summary} (pasado: $isPast)');
-    
+
+    print(
+      '_buildEventItem: Construyendo evento - ${event.summary} (pasado: $isPast)',
+    );
+
     String formatTime(DateTime? dateTime) {
       if (dateTime == null) return '';
       try {
@@ -650,7 +719,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
       }
     }
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -678,10 +747,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
           if (start != null && end != null)
             Text(
               '${formatTime(start)} - ${formatTime(end)}',
-              style: const TextStyle(
-                color: Color(0xFF666666),
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Color(0xFF666666), fontSize: 12),
             ),
         ],
       ),
