@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:googleapis/calendar/v3.dart';
+import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../../services/calendar_service.dart';
@@ -7,7 +7,7 @@ import '../../services/calendar_service.dart';
 class ShowCalendarPage extends StatefulWidget {
   final void Function()? togglePages;
   final String calendarId;
-  final CalendarListEntry? calendar;
+  final gcal.CalendarListEntry? calendar;
   final CalendarService calendarService; // Recibir el servicio
 
   const ShowCalendarPage({
@@ -23,7 +23,7 @@ class ShowCalendarPage extends StatefulWidget {
 }
 
 class _ShowCalendarPageState extends State<ShowCalendarPage> {
-  List<Event> _events = [];
+  List<gcal.Event> _events = [];
   bool _loading = false;
   bool _refreshing = false;
   String _viewMode = 'semanal'; // 'diaria' o 'semanal'
@@ -95,15 +95,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
 
       // Ajustar horas
       timeMin = DateTime(timeMin.year, timeMin.month, timeMin.day, 7, 0, 0, 0);
-      timeMax = DateTime(
-        timeMax.year,
-        timeMax.month,
-        timeMax.day,
-        20,
-        59,
-        59,
-        999,
-      );
+      timeMax = DateTime(timeMax.year, timeMax.month, timeMax.day, 21, 0, 0, 0);
 
       print('_fetchEvents: timeMin: $timeMin, timeMax: $timeMax');
 
@@ -116,6 +108,8 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         singleEvents: true,
         orderBy: 'startTime',
       );
+
+      _debugEventTimes();
 
       setState(() {
         _events = events;
@@ -139,6 +133,23 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         _refreshing = false;
       });
     }
+  }
+
+  // Agregar este método para debug
+  void _debugEventTimes() {
+    print('=== DEBUG EVENT TIMES ===');
+    for (var event in _filteredEvents) {
+      final start = event.start?.dateTime;
+      final end = event.end?.dateTime;
+      final startLocal = start?.toLocal();
+      final endLocal = end?.toLocal();
+
+      print('Event: ${event.summary}');
+      print('  Original: ${start} - ${end}');
+      print('  Local: ${startLocal} - ${endLocal}');
+      print('  Hour (local): ${startLocal?.hour}:${startLocal?.minute}');
+    }
+    print('========================');
   }
 
   void _showErrorDialog(String message) {
@@ -180,7 +191,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     return days;
   }
 
-  List<Event> get _filteredEvents {
+  List<gcal.Event> get _filteredEvents {
     final now = DateTime.now();
     final filtered = _events.where((event) {
       final start = event.start?.dateTime ?? event.start?.date;
@@ -226,27 +237,27 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFf5f5f5),
+      backgroundColor: const Color(0xFFf8f9fa),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
               // Header
               _buildHeader(),
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
 
               // Selector de vista y botón agregar
               _buildActionsRow(),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
               // Navegación semanal/diaria
               _buildNavigation(),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
               // Subtítulo
-              _buildSubtitle(),
-              const SizedBox(height: 10),
+              //_buildSubtitle(),
+              //const SizedBox(height: 10),
 
               // Vista del calendario
               Expanded(child: _buildCalendarView()),
@@ -256,8 +267,8 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddEventModal,
-        backgroundColor: const Color(0xFF007AFF),
-        child: const Icon(Icons.add, color: Color.fromARGB(255, 255, 255, 255)),
+        backgroundColor: const Color(0xFF1a73e8),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -274,14 +285,31 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
             widget.togglePages?.call();
           },
           child: Container(
-            padding: const EdgeInsets.all(10),
-            child: const Text(
-              '← Volver',
-              style: TextStyle(
-                color: Color(0xFF007AFF),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 2,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.arrow_back, color: Color(0xFF1a73e8), size: 20),
+                SizedBox(width: 4),
+                Text(
+                  'Volver',
+                  style: TextStyle(
+                    color: Color(0xFF1a73e8),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -292,9 +320,9 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
             'Calendario: ${widget.calendar?.summary ?? 'Sin nombre'}',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xFF333333),
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              color: Color(0xFF202124),
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -312,8 +340,15 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         // Selector de vista
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFe0e0e0),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 2,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
           child: Row(
             children: [_buildViewButton('diaria'), _buildViewButton('semanal')],
@@ -324,22 +359,21 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
 
         // Botón agregar evento
         ElevatedButton(
-          onPressed: () {
-            print('_buildActionsRow: Botón + Evento presionado');
-            _showAddEventModal();
-          },
+          onPressed: _showAddEventModal,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF007AFF),
+            backgroundColor: const Color(0xFF1a73e8),
+            foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            elevation: 0,
           ),
-          child: const Text(
-            '+ Evento',
-            style: TextStyle(
-              color: Color.fromARGB(255, 255, 255, 255),
-              fontWeight: FontWeight.bold,
-            ),
+          child: const Row(
+            children: [
+              Icon(Icons.add, size: 18),
+              SizedBox(width: 4),
+              Text('Evento', style: TextStyle(fontWeight: FontWeight.w500)),
+            ],
           ),
         ),
       ],
@@ -360,18 +394,15 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color.fromARGB(0, 0, 132, 255)
-              : Color.fromARGB(255, 255, 255, 255),
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? const Color(0xFF1a73e8) : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
-          mode == 'diaria' ? 'Diaria' : 'Semanal',
+          mode == 'diaria' ? 'Día' : 'Semana',
           style: TextStyle(
-            color: isSelected
-                ? Color.fromARGB(255, 255, 255, 255)
-                : const Color(0xFF333333),
-            fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.white : const Color(0xFF5f6368),
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
           ),
         ),
       ),
@@ -384,39 +415,27 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     // Si no se ha inicializado el formato de fechas, mostrar un placeholder
     if (!_dateFormatInitialized) {
       return Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFe0e0e0),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              onPressed: null, // Deshabilitado hasta que se inicialice
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF999999)),
-            ),
-            const Text(
-              'Cargando...',
-              style: TextStyle(
-                color: Color(0xFF333333),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            IconButton(
-              onPressed: null, // Deshabilitado hasta que se inicialice
-              icon: const Icon(Icons.arrow_forward, color: Color(0xFF999999)),
-            ),
-          ],
+        child: const Center(
+          child: Text(
+            'Cargando...',
+            style: TextStyle(color: Color(0xFF5f6368)),
+          ),
         ),
       );
     }
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFe0e0e0),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1)),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -424,55 +443,47 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
           // Botón anterior
           IconButton(
             onPressed: () {
-              print('_buildNavigation: Botón anterior presionado');
               setState(() {
                 if (_viewMode == 'diaria') {
                   _dayOffset--;
-                  print(
-                    '_buildNavigation: _dayOffset decrementado a $_dayOffset',
-                  );
                 } else {
                   _weekOffset--;
-                  print(
-                    '_buildNavigation: _weekOffset decrementado a $_weekOffset',
-                  );
                 }
               });
               _fetchEvents();
             },
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF007AFF)),
+            icon: const Icon(Icons.chevron_left, color: Color(0xFF5f6368)),
           ),
 
           // Etiqueta
-          Text(
-            _viewMode == 'diaria' ? _getFormattedDay() : _getFormattedWeek(),
-            style: const TextStyle(
-              color: Color(0xFF333333),
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          Expanded(
+            child: Center(
+              child: Text(
+                _viewMode == 'diaria'
+                    ? _getFormattedDay()
+                    : _getFormattedWeek(),
+                style: const TextStyle(
+                  color: Color(0xFF202124),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ),
 
           // Botón siguiente
           IconButton(
             onPressed: () {
-              print('_buildNavigation: Botón siguiente presionado');
               setState(() {
                 if (_viewMode == 'diaria') {
                   _dayOffset++;
-                  print(
-                    '_buildNavigation: _dayOffset incrementado a $_dayOffset',
-                  );
                 } else {
                   _weekOffset++;
-                  print(
-                    '_buildNavigation: _weekOffset incrementado a $_weekOffset',
-                  );
                 }
               });
               _fetchEvents();
             },
-            icon: const Icon(Icons.arrow_forward, color: Color(0xFF007AFF)),
+            icon: const Icon(Icons.chevron_right, color: Color(0xFF5f6368)),
           ),
         ],
       ),
@@ -517,17 +528,16 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     );
 
     if (_loading && _events.isEmpty) {
-      print('_buildCalendarView: Mostrando indicador de carga');
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1a73e8)),
+        ),
+      );
     }
 
-    print('_buildCalendarView: Vista seleccionada: $_viewMode');
     return RefreshIndicator(
-      onRefresh: () {
-        print('_buildCalendarView: RefreshIndicator activado');
-        return _fetchEvents();
-      },
-      color: const Color(0xFF007AFF),
+      onRefresh: _fetchEvents,
+      color: const Color(0xFF1a73e8),
       child: _viewMode == 'diaria' ? _buildDailyView() : _buildWeeklyView(),
     );
   }
@@ -541,7 +551,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Color.fromARGB(255, 255, 255, 255),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -551,11 +561,11 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
                 _getFormattedDay(),
                 style: const TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF007AFF),
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF202124),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
               ..._filteredEvents.map(_buildEventItem).toList(),
             ],
           ),
@@ -655,7 +665,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     return eventWidgets;
   }
 
-  Map<String, double>? _calculateEventPosition(Event event, int dayIndex) {
+  Map<String, double>? _calculateEventPosition(gcal.Event event, int dayIndex) {
     final eventStart = event.start?.dateTime;
     final eventEnd = event.end?.dateTime;
 
@@ -670,9 +680,10 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     final endHour = eventEnd.hour + (eventEnd.minute / 60.0);
     final durationHours = endHour - startHour;
 
-    // Convertir a píxeles (cada hora = 160px, cada 15min = 40px)
-    final top = (startHour - 6.0) * 160.0; // Comenzar desde las 6 AM
-    final height = durationHours * 160.0;
+    final baseHour = 7.0; // ← CAMBIAR de 6.0 a 7.0
+    final pixelsPerHour = 60.0; // ← CAMBIAR de 160.0 a 60.0
+    final top = (startHour - baseHour) * pixelsPerHour;
+    final height = durationHours * pixelsPerHour;
 
     // Asegurar que la altura mínima sea visible
     final minHeight = 20.0;
@@ -686,10 +697,10 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     };
   }
 
-  Widget _buildWeeklyEventItem(Event event) {
+  Widget _buildWeeklyEventItem(gcal.Event event) {
     final isPast = event.end?.dateTime?.isBefore(DateTime.now()) ?? false;
-    final eventStart = event.start?.dateTime;
-    final eventEnd = event.end?.dateTime;
+    final eventStart = event.start?.dateTime?.toLocal();
+    final eventEnd = event.end?.dateTime?.toLocal();
 
     String formatTime(DateTime? dateTime) {
       if (dateTime == null) return '';
@@ -719,9 +730,9 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
             overflow: TextOverflow.ellipsis,
             maxLines: 2,
           ),
-          if (eventStart != null)
+          if (eventStart != null && eventEnd != null)
             Text(
-              formatTime(eventStart),
+              '${formatTime(eventStart)} - ${formatTime(eventEnd)}', // ← MEJORADO: mostrar hora inicio y fin
               style: TextStyle(
                 fontSize: 8,
                 color: isPast
@@ -813,7 +824,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     final showHourLabel = slot['minutes'] == 0;
 
     return Container(
-      height: 40,
+      height: 60,
       decoration: BoxDecoration(
         border: Border(
           bottom: slot['minutes'] == 0
@@ -878,7 +889,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     return slots;
   }
 
-  List<Event> _getEventsForTimeSlot(DateTime day, Map<String, int> slot) {
+  List<gcal.Event> _getEventsForTimeSlot(DateTime day, Map<String, int> slot) {
     final slotStart = DateTime(
       day.year,
       day.month,
@@ -899,7 +910,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     }).toList();
   }
 
-  Map<String, dynamic> _getEventPosition(Event event, DateTime day) {
+  Map<String, dynamic> _getEventPosition(gcal.Event event, DateTime day) {
     final eventStart = event.start?.dateTime;
     final eventEnd = event.end?.dateTime;
 
@@ -925,7 +936,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     };
   }
 
-  Widget _buildEventCell(List<Event> events, DateTime slotTime) {
+  Widget _buildEventCell(List<gcal.Event> events, DateTime slotTime) {
     if (events.isEmpty) {
       return Container();
     }
@@ -981,7 +992,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   // En _buildEventItem, actualiza el formato de hora:
-  Widget _buildEventItem(Event event) {
+  Widget _buildEventItem(gcal.Event event) {
     final isPast = event.end?.dateTime?.isBefore(DateTime.now()) ?? false;
     final start = event.start?.dateTime;
     final end = event.end?.dateTime;
