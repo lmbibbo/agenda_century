@@ -41,6 +41,7 @@ dependencies:
   googleapis: ^14.0.0
   http: ^1.5.0
   intl: ^0.18.0
+  calendar_view: ^1.4.0
 
 dev_dependencies:
   flutter_test:

@@ -3,6 +3,7 @@ import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../../services/calendar_service.dart';
+import 'package:calendar_view/calendar_view.dart';
 
 class ShowCalendarPage extends StatefulWidget {
   final void Function()? togglePages;
@@ -109,7 +110,17 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         orderBy: 'startTime',
       );
 
-      _debugEventTimes(events);
+      for (var event in events) {
+        CalendarEventData eventData = CalendarEventData(
+          date: event.start!.date!,
+          title: event.summary ?? 'Evento',
+          startTime: event.start?.dateTime ?? event.start?.date,
+          endTime: event.end?.dateTime ?? event.end?.date,
+          description: event.description,
+        );
+
+        EventController().add(eventData);
+      }
 
       setState(() {
         _events = events;
@@ -595,32 +606,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   Widget _buildWeeklyCalendar() {
-    return SingleChildScrollView(
-      child: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            left: BorderSide(color: Color(0xFFdddddd), width: 1.0),
-            right: BorderSide(color: Color(0xFFdddddd), width: 1.0),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Grid de tiempo con eventos
-            Container(
-              height: _hourSlots.length * 40.0,
-              child: Stack(
-                children: [
-                  // Grid de fondo (horas)
-                  _buildTimeGrid(),
-                  // Eventos posicionados absolutamente
-                  ..._buildAllEvents(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return Scaffold(body: WeekView());
   }
 
   Widget _buildTimeGrid() {
