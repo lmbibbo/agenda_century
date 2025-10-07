@@ -109,7 +109,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
         orderBy: 'startTime',
       );
 
-      _debugEventTimes();
+      _debugEventTimes(events);
 
       setState(() {
         _events = events;
@@ -136,9 +136,9 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   // Agregar este método para debug
-  void _debugEventTimes() {
+  void _debugEventTimes(List<gcal.Event> events) {
     print('=== DEBUG EVENT TIMES ===');
-    for (var event in _filteredEvents) {
+    for (var event in events) {
       final start = event.start?.dateTime;
       final end = event.end?.dateTime;
       final startLocal = start?.toLocal();
@@ -194,7 +194,8 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   List<gcal.Event> get _filteredEvents {
     final now = DateTime.now();
     final filtered = _events.where((event) {
-      final start = event.start?.dateTime ?? event.start?.date;
+      final start =
+          event.start?.dateTime?.toLocal() ?? event.start?.date?.toLocal();
       if (start == null) {
         print('_filteredEvents: Evento sin fecha de inicio - ${event.summary}');
         return false;
@@ -634,7 +635,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     final eventWidgets = <Widget>[];
 
     for (final event in _filteredEvents) {
-      final eventStart = event.start?.dateTime;
+      final eventStart = event.start?.dateTime?.toLocal();
       if (eventStart == null) continue;
 
       // Encontrar en qué día de la semana cae el evento
@@ -666,8 +667,8 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   Map<String, double>? _calculateEventPosition(gcal.Event event, int dayIndex) {
-    final eventStart = event.start?.dateTime;
-    final eventEnd = event.end?.dateTime;
+    final eventStart = event.start?.dateTime?.toLocal();
+    final eventEnd = event.end?.dateTime?.toLocal();
 
     if (eventStart == null || eventEnd == null) return null;
 
@@ -680,8 +681,8 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     final endHour = eventEnd.hour + (eventEnd.minute / 60.0);
     final durationHours = endHour - startHour;
 
-    final baseHour = 7.0; // ← CAMBIAR de 6.0 a 7.0
-    final pixelsPerHour = 60.0; // ← CAMBIAR de 160.0 a 60.0
+    final baseHour = 6.0; // ← CAMBIAR de 6.0 a 7.0
+    final pixelsPerHour = 160.0; // ← CAMBIAR de 160.0 a 120.0
     final top = (startHour - baseHour) * pixelsPerHour;
     final height = durationHours * pixelsPerHour;
 
@@ -824,27 +825,14 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     final showHourLabel = slot['minutes'] == 0;
 
     return Container(
-      height: 60,
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: slot['minutes'] == 0
-              ? const BorderSide(
-                  color: Color(0xFFdddddd),
-                  width: 1.0,
-                ) // Línea más gruesa cada hora
-              : const BorderSide(
-                  color: Color(0xFFf0f0f0),
-                  width: 0.5,
-                ), // Línea sutil cada 15 min
-        ),
-      ),
+      height: 40,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Columna de horas
+          // Columna de horas - SIN BORDES HORIZONTALES
           Container(
             width: 60,
-            padding: const EdgeInsets.only(right: 8, top: 4),
+            padding: const EdgeInsets.only(right: 8),
             alignment: Alignment.topCenter,
             decoration: const BoxDecoration(
               border: Border(
@@ -852,22 +840,46 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
               ),
             ),
             child: showHourLabel
-                ? Text(
-                    '${slot['hour']!.toString().padLeft(2, '0')}:00',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF666666),
-                      fontWeight: FontWeight.bold,
+                ? Container(
+                    // Este contenedor ayuda a alinear el texto con la línea
+                    margin: const EdgeInsets.only(
+                      top: -4,
+                    ), // Ajusta este valor según necesites
+                    child: Text(
+                      '${slot['hour']!.toString().padLeft(2, '0')}:00',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF666666),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   )
                 : null,
           ),
 
-          // Columnas de días - solo contenido sin bordes laterales
+          // Columnas de días - CON BORDES HORIZONTALES
           ...List.generate(7, (index) {
             return Expanded(
               child: Container(
-                // Sin bordes laterales aquí, los manejaremos en el header
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: slot['minutes'] == 0
+                        ? const BorderSide(
+                            color: Color(0xFFdddddd),
+                            width: 1.0,
+                          ) // Línea más gruesa cada hora
+                        : const BorderSide(
+                            color: Color(0xFFf0f0f0),
+                            width: 0.5,
+                          ), // Línea sutil cada 30 min
+                    right: BorderSide(
+                      color: const Color(0xFFdddddd),
+                      width: index == 6
+                          ? 0.0
+                          : 1.0, // Sin borde derecho en la última columna
+                    ),
+                  ),
+                ),
               ),
             );
           }),
@@ -877,14 +889,18 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   List<Map<String, int>> get _hourSlots {
-    final slots = List.generate(48, (index) {
-      // 12 horas * 4 slots por hora = 48 slots
-      final hour = 6 + (index ~/ 4); // Comenzar desde las 6 AM hasta las 18 PM
+    final startHour = 6; // Comienza a las 6:00
+    final endHour = 22; // Termina a las 22:00
+    final totalHours = endHour - startHour;
+    final totalSlots = totalHours * 4;
+
+    final slots = List.generate(totalSlots, (index) {
+      final hour = startHour + (index ~/ 4);
       final minutes = (index % 4) * 15;
       return {'hour': hour, 'minutes': minutes};
     });
     print(
-      '_hourSlots: Generados ${slots.length} slots horarios (15 min cada uno)',
+      '_hourSlots: Generados ${slots.length} slots horarios (de $startHour:00 a $endHour:00)',
     );
     return slots;
   }

@@ -116,7 +116,7 @@ class _ShowCalendarListPageState extends State<ShowCalendarListPage> {
           final calendar = widget.calendars[index];
           return CalendarListItem(
             calendar: calendar,
-            onTap: () => widget.onSelectCalendar?.call(calendar),
+            onTap: () => widget.onSelectCalendar.call(calendar),
           );
         },
       ),
