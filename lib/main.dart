@@ -24,12 +24,10 @@ class MyApp extends StatelessWidget {
   MyApp({super.key});
 
   final _firebaseAuthRepo = FirebaseAuthRepo();
-  final eventController = EventController(); // Crear el EventController
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final eventController = EventController();
 
     return MultiBlocProvider(
       // Providers cubits to app
@@ -43,7 +41,7 @@ class MyApp extends StatelessWidget {
 
       // MaterialApp
       child: CalendarControllerProvider(
-        controller: eventController, // Proporciona el EventController
+        controller: EventController(), // Proporciona el EventController
         child: MaterialApp(
           title: 'Agenda de Salas',
           debugShowCheckedModeBanner: false,
