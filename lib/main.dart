@@ -10,12 +10,13 @@ import 'package:agenda_century/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calendar_view/calendar_view.dart';
+import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 
 void main() async {
   // firebase setup
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
   // run app
   runApp(MyApp());
 }
@@ -24,59 +25,45 @@ class MyApp extends StatelessWidget {
   MyApp({super.key});
 
   final _firebaseAuthRepo = FirebaseAuthRepo();
+  final EventsController _eventsController = EventsController();
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MultiBlocProvider(
-      // Providers cubits to app
       providers: [
-        // auth cubit
         BlocProvider<AuthCubit>(
           create: (context) =>
               AuthCubit(authRepo: _firebaseAuthRepo)..checkAuth(),
         ),
       ],
-
-      // MaterialApp
-      child: CalendarControllerProvider(
-        controller: EventController(), // Proporciona el EventController
-        child: MaterialApp(
-          title: 'Agenda de Salas',
-          debugShowCheckedModeBanner: false,
-          theme: lightMode,
-          darkTheme: darkMode,
-          /*
-        Bloc Consumer that listens to AuthCubit state changes and rebuilds the UI accordingly.
-
-        */
-          home: BlocConsumer<AuthCubit, AuthState>(
-            builder: (context, state) {
-              // unauthenticated state -> show AuthPage (login/register)
-              if (state is Unauthenticated) {
-                return const AuthPage();
-              }
-              //authenticated states
-              if (state is Authenticated) {
-                return const HomePage();
-              } else {
-                // loading...
-                return const LoadingScreen();
-              }
-            },
-            listener: (context, state) {
-              if (state is AuthError) {
-                // on auth error, show snackbar with error message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-          ),
+      // ❌ ELIMINAR CalendarControllerProvider - NO EXISTE en infinite_calendar_view
+      child: MaterialApp(
+        title: 'Agenda de Salas',
+        debugShowCheckedModeBanner: false,
+        theme: lightMode,
+        darkTheme: darkMode,
+        home: BlocConsumer<AuthCubit, AuthState>(
+          builder: (context, state) {
+            if (state is Unauthenticated) {
+              return const AuthPage();
+            }
+            if (state is Authenticated) {
+              // Pasar el EventsController al HomePage
+              return HomePage(eventsController: _eventsController);
+            } else {
+              return const LoadingScreen();
+            }
+          },
+          listener: (context, state) {
+            if (state is AuthError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
         ),
       ),
     );

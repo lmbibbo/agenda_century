@@ -6,9 +6,12 @@ import 'package:agenda_century/features/home/services/calendar_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:googleapis/calendar/v3.dart';
+import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final EventsController eventsController;
+  
+  const HomePage({super.key, required this.eventsController});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -34,7 +37,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _initializeCalendarService() {
-    // Esperar a que el widget esté construido para acceder al context
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = context.read<AuthCubit>().state;
       if (state is Authenticated) {
@@ -69,14 +71,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ✅ Esta función se llama cuando seleccionas un calendario
   void _onSelectCalendar(CalendarListEntry calendar) {
     setState(() {
       _selectedCalendar = calendar;
-      _showCalendarList = false; // Cambiar a vista de calendario
+      _showCalendarList = false;
     });
 
-    // Opcional: Mostrar mensaje de confirmación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -87,7 +87,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ✅ Esta función vuelve a la lista de calendarios
   void _onBackToList() {
     setState(() {
       _showCalendarList = true;
@@ -107,6 +106,7 @@ class _HomePageState extends State<HomePage> {
         calendar: _selectedCalendar,
         togglePages: _onBackToList,
         calendarService: _calendarService,
+        eventsController: widget.eventsController, // Pasar el controller
       );
     }
   }
