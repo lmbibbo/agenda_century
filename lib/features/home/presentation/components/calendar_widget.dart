@@ -2,16 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import 'package:agenda_century/features/home/services/calendar_service.dart';
 import 'package:googleapis/calendar/v3.dart' as gcal;
+import '../enumerations.dart';
+import '../views/events_list.dart';
+import '../views/events_planner_one_day.dart';
+import '../views/events_planner_draggable_events.dart';
+import '../views/events_months.dart';
 
 class CustomCalendarView extends StatefulWidget {
   final String calendarId;
   final CalendarService calendarService;
   final EventsController eventsController;
+  final Mode calendarMode;
+
   const CustomCalendarView({
     super.key,
     required this.calendarId,
     required this.calendarService,
     required this.eventsController,
+    required this.calendarMode,
   });
 
   @override
@@ -22,6 +30,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
   late EventsController _eventsController;
   final double _heightPerMinute = 1.0;
   final double _initialVerticalScrollOffset = 1.0 * 7 * 60;
+
 
   @override
   void initState() {
@@ -73,16 +82,31 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
 
   @override
   Widget build(BuildContext context) {
-    return EventsPlanner(
-      controller: _eventsController,
-      daysShowed: 3, // Puedes hacer esto configurable
-      heightPerMinute: _heightPerMinute,
-      initialVerticalScrollOffset: _initialVerticalScrollOffset,
-      dayParam: DayParam(
-        slotSelectionParam: SlotSelectionParam(
-          enableLongPressSlotSelection: true,
-        ),
-      ),
-    );
+    return switch (widget.calendarMode) {
+      Mode.agenda => EventsListView(eventsController: _eventsController),
+      Mode.day => PlannerOneDay(eventsController: _eventsController),
+      Mode.day7 => PlannerEventsDrag(eventsController: _eventsController, key: UniqueKey(), daysShowed: 7),
+      Mode.day3Draggable => PlannerEventsDrag(eventsController: _eventsController, key: UniqueKey(), daysShowed: 3),
+
+      /*// TODO: Handle this case.
+      Mode.month => throw UnimplementedError(),
+      // TODO: Handle this case.
+      Mode.multiColumn => throw UnimplementedError(),
+      // TODO: Handle this case.
+      Mode.multiColumn2 => throw UnimplementedError(),
+      // TODO: Handle this case.
+      // TODO: Handle this case.
+      Mode.day3RTL => throw UnimplementedError(),
+      // TODO: Handle this case.
+      Mode.monthRTL => throw UnimplementedError(),
+      // TODO: Handle this case.
+      Mode.day3Rotation => throw UnimplementedError(),
+      // TODO: Handle this case.
+      Mode.day3RotationMultiColumn => throw UnimplementedError(),
+      // TODO: Handle this case.
+      Mode.day3 => throw UnimplementedError(),*/
+      // TODO: Handle this case.
+      Mode.month => Months(eventsController: _eventsController),
+    };
   }
 }

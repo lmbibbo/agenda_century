@@ -42,6 +42,10 @@ dependencies:
   http: ^1.5.0
   intl: ^0.18.0
   infinite_calendar_view: ^2.10.1
+  flutter_secure_storage: ^10.0.0-beta.4
+  shared_preferences: ^2.5.3
+  table_calendar: ^3.0.9
+  random_avatar: ^0.0.8
   
 
 dev_dependencies:
