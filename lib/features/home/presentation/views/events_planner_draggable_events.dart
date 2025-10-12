@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../utils.dart';
 
 class PlannerEventsDrag extends StatelessWidget {
-    final dynamic eventsController;
+  final dynamic eventsController;
 
   const PlannerEventsDrag({
     super.key,
@@ -26,6 +26,22 @@ class PlannerEventsDrag extends StatelessWidget {
       daysShowed: daysShowed,
       heightPerMinute: heightPerMinute,
       initialVerticalScrollOffset: initialVerticalScrollOffset,
+      offTimesParam: OffTimesParam(
+        offTimesAllDaysRanges: [
+          // Oculta horas antes de las 7:00 AM
+          OffTimeRange(
+            TimeOfDay(hour: 0, minute: 0),
+            TimeOfDay(hour: 7, minute: 0),
+          ),
+          // Oculta horas después de las 21:00 (9:00 PM)
+          OffTimeRange(
+            TimeOfDay(hour: 21, minute: 0),
+            TimeOfDay(hour: 24, minute: 0),
+          ),
+        ],
+        offTimesColor: Theme.of(context).scaffoldBackgroundColor,
+      ),
+
       dayParam: DayParam(
         onSlotMinutesRound: 30,
         dayEventBuilder: (event, height, width, heightPerMinute) {
@@ -35,10 +51,11 @@ class PlannerEventsDrag extends StatelessWidget {
           enableTapSlotSelection: true,
           enableLongPressSlotSelection: true,
           onSlotSelectionTap: (slot) => showSnack(
-              context,
-              slot.startDateTime.toString() +
-                  " : " +
-                  slot.durationInMinutes.toString()),
+            context,
+            slot.startDateTime.toString() +
+                " : " +
+                slot.durationInMinutes.toString(),
+          ),
         ),
       ),
       daysHeaderParam: DaysHeaderParam(
@@ -51,19 +68,21 @@ class PlannerEventsDrag extends StatelessWidget {
           ),
         ),
       ),
-      fullDayParam: FullDayParam(
-        fullDayEventsBarHeight: 50,
-      ),
+      fullDayParam: FullDayParam(fullDayEventsBarHeight: 50),
     );
   }
 
   DefaultDayHeader getDayHeader(
-      DateTime day, bool isToday, BuildContext context) {
+    DateTime day,
+    bool isToday,
+    BuildContext context,
+  ) {
     return DefaultDayHeader(
       dayText: DateFormat("E d").format(day),
       isToday: isToday,
-      foregroundColor:
-          isDarkMode ? Theme.of(context).colorScheme.primary : null,
+      foregroundColor: isDarkMode
+          ? Theme.of(context).colorScheme.primary
+          : null,
     );
   }
 

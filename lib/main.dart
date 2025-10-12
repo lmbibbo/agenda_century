@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 
+var currentThemeMode = ThemeMode.system; // Modo por defecto: sistema
+
 void main() async {
   // firebase setup
   WidgetsFlutterBinding.ensureInitialized();

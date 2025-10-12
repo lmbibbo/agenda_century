@@ -48,6 +48,21 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
             heightPerMinute: heightPerMinute,
             initialVerticalScrollOffset: initialVerticalScrollOffset,
             horizontalScrollPhysics: const PageScrollPhysics(),
+            offTimesParam: OffTimesParam(
+              offTimesAllDaysRanges: [
+                // Oculta horas antes de las 7:00 AM
+                OffTimeRange(
+                  TimeOfDay(hour: 0, minute: 0),
+                  TimeOfDay(hour: 7, minute: 0),
+                ),
+                // Oculta horas después de las 21:00 (9:00 PM)
+                OffTimeRange(
+                  TimeOfDay(hour: 21, minute: 0),
+                  TimeOfDay(hour: 24, minute: 0),
+                ),
+              ],
+              offTimesColor: Theme.of(context).scaffoldBackgroundColor,
+            ),
             daysHeaderParam: DaysHeaderParam(
               daysHeaderVisibility: false,
               dayHeaderTextBuilder: (day) => DateFormat("E d").format(day),
