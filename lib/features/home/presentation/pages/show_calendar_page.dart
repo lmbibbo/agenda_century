@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:agenda_century/features/home/presentation/components/calendar_widget.dart';
-import 'package:agenda_century/features/home/services/calendar_service.dart';
+import '../../services/calendar_service.dart';
+import 'add_event_page.dart';
 import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import '../enumerations.dart';
@@ -28,7 +29,7 @@ class ShowCalendarPage extends StatefulWidget {
 
 class _ShowCalendarPageState extends State<ShowCalendarPage> {
   Mode _currentMode = Mode.day3Draggable;
- 
+
   void _changeView(Mode newMode) {
     setState(() {
       _currentMode = newMode;
@@ -44,17 +45,13 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   List<Mode> _getMainModes() {
-    return [
-      Mode.agenda,
-      Mode.day,
-      Mode.day3Draggable,
-      Mode.month,
-      Mode.day7,
-    ];
+    return [Mode.agenda, Mode.day, Mode.day3Draggable, Mode.month, Mode.day7];
   }
 
   List<Mode> _getAdditionalModes() {
-    return Mode.values.where((mode) => !_getMainModes().contains(mode)).toList();
+    return Mode.values
+        .where((mode) => !_getMainModes().contains(mode))
+        .toList();
   }
 
   // Método para determinar si estamos en dark mode
@@ -97,6 +94,12 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
             onPressed: widget.togglePages,
           ),
           actions: [
+            // Botón para agregar evento
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _showAddEventDialog(context),
+              tooltip: 'Agregar evento',
+            ),
             // Botón para cambiar el tema
             IconButton(
               icon: Icon(_themeIcon),
@@ -105,40 +108,46 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
               },
               tooltip: 'Cambiar tema',
             ),
-            
+
             // Botones para las vistas principales
-            ..._getMainModes().map((mode) => 
-              IconButton(
-                icon: Icon(mode.icon,
-                    color: _currentMode == mode 
-                        ? Colors.white 
-                        : Colors.white70),
-                onPressed: () => _changeView(mode),
-                tooltip: mode.text,
-              ),
-            ).toList(),
-            
+            ..._getMainModes()
+                .map(
+                  (mode) => IconButton(
+                    icon: Icon(
+                      mode.icon,
+                      color: _currentMode == mode
+                          ? Colors.white
+                          : Colors.white70,
+                    ),
+                    onPressed: () => _changeView(mode),
+                    tooltip: mode.text,
+                  ),
+                )
+                .toList(),
+
             // Menú desplegable para las vistas adicionales
             PopupMenuButton<Mode>(
               icon: Icon(Icons.more_vert),
               onSelected: _changeView,
               tooltip: 'Más vistas',
-              itemBuilder: (BuildContext context) => 
+              itemBuilder: (BuildContext context) =>
                   _getAdditionalModes().map((Mode mode) {
-                return PopupMenuItem<Mode>(
-                  value: mode,
-                  child: Row(
-                    children: [
-                      Icon(mode.icon,
-                           color: _currentMode == mode 
-                               ? Theme.of(context).primaryColor 
-                               : null),
-                      const SizedBox(width: 12),
-                      Text(mode.text),
-                    ],
-                  ),
-                );
-              }).toList(),
+                    return PopupMenuItem<Mode>(
+                      value: mode,
+                      child: Row(
+                        children: [
+                          Icon(
+                            mode.icon,
+                            color: _currentMode == mode
+                                ? Theme.of(context).primaryColor
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(mode.text),
+                        ],
+                      ),
+                    );
+                  }).toList(),
             ),
           ],
         ),
@@ -156,6 +165,31 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     );
   }
 
+void _showAddEventDialog(BuildContext context) async {
+  print("Mostrando diálogo para agregar evento");
+  final result = await Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => AddEventPage(
+        calendarId: widget.calendarId,
+        calendarService: widget.calendarService,
+        initialDate: DateTime.now(), // O la fecha seleccionada en el calendario
+      ),
+    ),
+  );
+
+  if (result == true) {
+    // Recargar eventos si se creó uno nuevo
+    //widget.eventsController.updateCalendarData();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Evento agregado exitosamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+}
   // Diálogo para seleccionar el modo del tema
   void _showThemeModeDialog(BuildContext context) {
     showDialog(
@@ -210,7 +244,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
     String subtitle,
   ) {
     final bool isSelected = currentThemeMode == themeMode;
-    
+
     return ListTile(
       leading: Icon(
         icon,
@@ -218,17 +252,17 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       ),
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).primaryColor) : null,
+      trailing: isSelected
+          ? Icon(Icons.check, color: Theme.of(context).primaryColor)
+          : null,
       onTap: () {
         _changeThemeMode(themeMode);
         Navigator.of(context).pop();
       },
-      tileColor: isSelected 
+      tileColor: isSelected
           ? Theme.of(context).primaryColor.withOpacity(0.1)
           : null,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }

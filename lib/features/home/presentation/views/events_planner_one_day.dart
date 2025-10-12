@@ -88,6 +88,15 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
                   onTapDown: (details) => print("tapdown ${event.uniqueId}"),
                 );
               },
+              slotSelectionParam: SlotSelectionParam(
+                enableTapSlotSelection: true,
+                enableLongPressSlotSelection: true,
+                onSlotSelectionTap: (slot) => print(
+                  slot.startDateTime.toString() +
+                      " : " +
+                      slot.durationInMinutes.toString(),
+                ),
+              ),
             ),
           ),
         ),

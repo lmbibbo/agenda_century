@@ -83,32 +83,12 @@ class CalendarService {
  // ➕ AGREGAR EVENTO A UN CALENDARIO
   Future<Event> addEvent({
     required String calendarId,
-    required String title,
-    required String description,
-    required DateTime start,
-    required DateTime end,
-    String? location,
-    List<String>? attendees,
+    required Event event,
   }) async {
     try {
       print('➕ Agregando evento al calendario $calendarId...');
-      
-      final event = Event()
-        ..summary = title
-        ..description = description
-        ..location = location
-        ..start = EventDateTime(dateTime: start)
-        ..end = EventDateTime(dateTime: end);
-      
-      if (attendees != null && attendees.isNotEmpty) {
-        event.attendees = attendees.map((email) => EventAttendee()
-          ..email = email
-          ..displayName = email
-        ).toList();
-      }
-      
+
       final createdEvent = await _calendarApi.events.insert(event, calendarId);
-      
       print('✅ Evento agregado exitosamente: ${createdEvent.id}');
       return createdEvent;
     } catch (error) {
