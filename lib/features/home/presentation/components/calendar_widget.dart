@@ -58,10 +58,10 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
       DateTime startDate;
       DateTime endDate;
       if (googleEvent.start?.dateTime != null ) {
-        startDate = googleEvent.start!.dateTime!;
-        endDate = googleEvent.end?.dateTime ?? startDate.add(const Duration(hours: 1));
+        startDate = googleEvent.start!.dateTime!.toLocal();
+        endDate = googleEvent.end?.dateTime?.toLocal() ?? startDate.add(const Duration(hours: 1));
       } else {
-        startDate = DateTime.now();
+        startDate = DateTime.now().toLocal();
         endDate = startDate.add(const Duration(hours: 1));
       }
 

@@ -11,11 +11,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart';
 
 var currentThemeMode = ThemeMode.system; // Modo por defecto: sistema
 
 void main() async {
   // firebase setup
+  Intl.defaultLocale = 'es_ES';
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   
@@ -41,6 +44,12 @@ class MyApp extends StatelessWidget {
       // ❌ ELIMINAR CalendarControllerProvider - NO EXISTE en infinite_calendar_view
       child: MaterialApp(
         title: 'Agenda de Salas',
+        localizationsDelegates: const [
+          // ... app-specific localization delegate[s] here
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         debugShowCheckedModeBanner: false,
         theme: lightMode,
         darkTheme: darkMode,

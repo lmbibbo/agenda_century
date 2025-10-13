@@ -108,7 +108,10 @@ class PlannerEventsDrag extends StatelessWidget {
         height: height,
         width: width,
         title: event.title,
-        description: event.description,
+        description: event.startTime != null && event.endTime != null
+                      ? DateFormat("HH:mm").format(event.startTime!) + " - " +
+                          DateFormat("HH:mm").format(event.endTime!)
+                      : "",
         color: isDarkMode ? event.color.onPastel : event.color,
         textColor: isDarkMode ? event.textColor.pastel : event.textColor,
         onTap: () => showSnack(context, "Tap = ${event.title}"),

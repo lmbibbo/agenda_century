@@ -24,6 +24,8 @@ class _AddEventPageState extends State<AddEventPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
+  late DateFormat _dateFormat;
+  late DateFormat _timeFormat;
 
   DateTime _startDate = DateTime.now();
   TimeOfDay _startTime = TimeOfDay.now();
@@ -41,6 +43,8 @@ class _AddEventPageState extends State<AddEventPage> {
       _startTime = TimeOfDay.fromDateTime(widget.initialDate!);
       _endTime = TimeOfDay.fromDateTime(widget.initialDate!.add(const Duration(hours: 1)));
     }
+    _dateFormat = DateFormat('dd/MM/yyyy');
+    _timeFormat = DateFormat('HH:mm');
   }
 
   @override
@@ -51,12 +55,22 @@ class _AddEventPageState extends State<AddEventPage> {
     super.dispose();
   }
 
+  String _formatDate(DateTime date) {
+    return _dateFormat.format(date);
+  }
+
+  String _formatTime(TimeOfDay time) {
+    final now = DateTime.now();
+    final datetime = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return _timeFormat.format(datetime);
+  }
+
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: isStart ? _startDate : _endDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
       locale: const Locale('es', 'ES'),
     );
     
@@ -175,20 +189,22 @@ class _AddEventPageState extends State<AddEventPage> {
       if (_isAllDay) {
         event.start = gcal.EventDateTime()
           ..date = DateTime(_startDate.year, _startDate.month, _startDate.day)
-          ..timeZone = 'UTC';
+          ..timeZone = 'UTC-3';
         event.end = gcal.EventDateTime()
           ..date = DateTime(_endDate.year, _endDate.month, _endDate.day)
-          ..timeZone = 'UTC';
+          ..timeZone = 'UTC-3';
       } else {
         final startDateTime = _combineDateAndTime(_startDate, _startTime);
         final endDateTime = _combineDateAndTime(_endDate, _endTime);
 
         event.start = gcal.EventDateTime()
           ..dateTime = startDateTime
-          ..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
+          ..timeZone = 'UTC-3';
+         // ..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
         event.end = gcal.EventDateTime()
           ..dateTime = endDateTime
-          ..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
+          ..timeZone = 'UTC-3';
+          //..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
       }
 
       await widget.calendarService.addEvent(calendarId: widget.calendarId, event: event );
@@ -219,7 +235,7 @@ class _AddEventPageState extends State<AddEventPage> {
       }
     }
   }
-
+/*
   String _formatDate(DateTime date) {
     return DateFormat('dd/MM/yyyy', 'es_ES').format(date);
   }
@@ -227,7 +243,7 @@ class _AddEventPageState extends State<AddEventPage> {
   String _formatTime(TimeOfDay time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
-
+*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(

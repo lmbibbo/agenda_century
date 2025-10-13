@@ -71,7 +71,7 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
                 return DefaultDayEvent(
                   height: height,
                   width: width,
-                  title: event.title,
+                  title: _horasEvento(event),
                   description: event.description,
                   color: event.color,
                   textColor: event.textColor,
@@ -110,5 +110,15 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
         oneDayViewKey.currentState?.jumpToDate(selectedDay);
       },
     );
+  }
+  
+  String _horasEvento(Event event) {
+    if (event.startTime != null && event.endTime != null) {
+      String horasStr = event.title! + ": " +
+        DateFormat("HH:mm").format(event.startTime!) + " - " +
+        DateFormat("HH:mm").format(event.endTime!);      
+      return horasStr;
+    }
+    return event.title!;
   }
 }
