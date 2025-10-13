@@ -26,6 +26,9 @@ class PlannerEventsDrag extends StatelessWidget {
       daysShowed: daysShowed,
       heightPerMinute: heightPerMinute,
       initialVerticalScrollOffset: initialVerticalScrollOffset,
+      onDayChange: (firstDay) {
+        print("Día inicial: cambiado a: $firstDay");
+      },
       offTimesParam: OffTimesParam(
         offTimesAllDaysRanges: [
           // Oculta horas antes de las 7:00 AM

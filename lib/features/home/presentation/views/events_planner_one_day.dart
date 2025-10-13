@@ -1,4 +1,3 @@
-
 import 'widgets/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
@@ -7,10 +6,7 @@ import 'package:intl/intl.dart';
 class PlannerOneDay extends StatefulWidget {
   final dynamic eventsController;
 
-  const PlannerOneDay({
-    super.key,
-    required this.eventsController,
-  });
+  const PlannerOneDay({super.key, required this.eventsController});
 
   @override
   State<PlannerOneDay> createState() => _PlannerOneDayState();
@@ -36,10 +32,7 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
         const SizedBox(height: 8.0),
         buildCalendar(),
         const SizedBox(height: 4.0),
-        Divider(
-          color: Theme.of(context).colorScheme.outlineVariant,
-          height: 2,
-        ),
+        Divider(color: Theme.of(context).colorScheme.outlineVariant, height: 2),
         Expanded(
           child: EventsPlanner(
             key: oneDayViewKey,
@@ -68,6 +61,7 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
               dayHeaderTextBuilder: (day) => DateFormat("E d").format(day),
             ),
             onDayChange: (firstDay) {
+              print("Día cambiado a: $firstDay");
               setState(() {
                 selectedDay = firstDay;
               });
@@ -108,6 +102,7 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
     return Calendar(
       selectedDay: selectedDay,
       onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
+        print("Día seleccionado: $selectedDay y FocusedDay: $focusedDay");
         setState(() {
           this.selectedDay = selectedDay;
         });

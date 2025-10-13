@@ -6,10 +6,7 @@ import 'widgets/calendar.dart';
 class EventsListView extends StatefulWidget {
   final dynamic eventsController;
 
-  const EventsListView({
-    super.key, 
-    required this.eventsController,
-  });
+  const EventsListView({super.key, required this.eventsController});
 
   @override
   State<EventsListView> createState() => _EventsListViewState();
@@ -45,6 +42,7 @@ class _EventsListViewState extends State<EventsListView> {
               );
             },
             onDayChange: (firstDay) {
+              print("Día inicial: cambiado a: $firstDay");
               setState(() {
                 selectedDay = firstDay;
               });
@@ -62,6 +60,7 @@ class _EventsListViewState extends State<EventsListView> {
     return Calendar(
       selectedDay: selectedDay,
       onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
+        print("Día seleccionado: $selectedDay y FocusedDay: $focusedDay");
         setState(() {
           this.selectedDay = selectedDay;
         });
