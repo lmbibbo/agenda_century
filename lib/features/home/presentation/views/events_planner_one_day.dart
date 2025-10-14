@@ -101,6 +101,7 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
   Calendar buildCalendar() {
     return Calendar(
       selectedDay: selectedDay,
+      headerVisible: false,
       onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
         print("Día seleccionado: $selectedDay y FocusedDay: $focusedDay");
         setState(() {

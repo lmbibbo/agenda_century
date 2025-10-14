@@ -6,10 +6,12 @@ class Calendar extends StatelessWidget {
     super.key,
     required this.selectedDay,
     required this.onDaySelected,
+    required this.headerVisible,
   });
 
   final DateTime selectedDay;
   final OnDaySelected onDaySelected;
+  final bool headerVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -20,14 +22,17 @@ class Calendar extends StatelessWidget {
       calendarFormat: CalendarFormat.week,
       selectedDayPredicate: (day) => isSameDay(selectedDay, day),
       onDaySelected: onDaySelected,
-      headerVisible: false,
-      weekNumbersVisible: true,
+      locale: 'es_ES',
+      headerVisible: headerVisible,
+      weekNumbersVisible: false,
       headerStyle: const HeaderStyle(
+        leftChevronVisible: true,
+        rightChevronVisible: true,
         formatButtonVisible: false,
         titleCentered: true,
       ),
       calendarStyle: CalendarStyle(
-        outsideDaysVisible: true,
+        outsideDaysVisible: false,
         markerSize: 7,
         todayDecoration: BoxDecoration(
           color: Colors.blueGrey,

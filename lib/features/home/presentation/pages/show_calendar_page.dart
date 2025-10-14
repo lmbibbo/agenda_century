@@ -45,7 +45,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   List<Mode> _getMainModes() {
-    return [Mode.agenda, Mode.day, Mode.day3Draggable, Mode.month, Mode.day7];
+    return [Mode.agenda, Mode.day, Mode.day3Draggable, Mode.day7, Mode.month];
   }
 
   List<Mode> _getAdditionalModes() {
@@ -213,13 +213,6 @@ void _showAddEventDialog(BuildContext context) async {
                 Icons.dark_mode,
                 'Modo oscuro',
                 'Usar tema oscuro',
-              ),
-              _buildThemeOption(
-                context,
-                ThemeMode.system,
-                Icons.brightness_auto,
-                'Sistema',
-                'Usar la configuración del sistema',
               ),
             ],
           ),

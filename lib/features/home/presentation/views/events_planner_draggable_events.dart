@@ -74,7 +74,7 @@ class PlannerEventsDrag extends StatelessWidget {
       fullDayParam: FullDayParam(fullDayEventsBarHeight: 50),
     );
   }
-
+/*
   DefaultDayHeader getDayHeader(
     DateTime day,
     bool isToday,
@@ -85,10 +85,10 @@ class PlannerEventsDrag extends StatelessWidget {
       isToday: isToday,
       foregroundColor: isDarkMode
           ? Theme.of(context).colorScheme.primary
-          : null,
+          : Colors.yellow,
     );
   }
-
+*/
   DraggableEventWidget draggableEvent(
     BuildContext context,
     Event event,
@@ -107,15 +107,22 @@ class PlannerEventsDrag extends StatelessWidget {
       child: DefaultDayEvent(
         height: height,
         width: width,
-        title: event.title,
-        description: event.startTime != null && event.endTime != null
-                      ? DateFormat("HH:mm").format(event.startTime!) + " - " +
-                          DateFormat("HH:mm").format(event.endTime!)
-                      : "",
+        title: _horasEvento(event),
+        description: event.description,
         color: isDarkMode ? event.color.onPastel : event.color,
         textColor: isDarkMode ? event.textColor.pastel : event.textColor,
         onTap: () => showSnack(context, "Tap = ${event.title}"),
       ),
     );
+  }
+  
+  String _horasEvento(Event event) {
+    if (event.startTime != null && event.endTime != null) {
+      String horasStr = event.title! + ": " +
+        DateFormat("HH:mm").format(event.startTime!) + " - " +
+        DateFormat("HH:mm").format(event.endTime!);      
+      return horasStr;
+    }
+    return event.title!;
   }
 }
