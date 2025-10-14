@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
+import 'features/themes/theme_manager.dart';
 
 var currentThemeMode = ThemeMode.system; // Modo por defecto: sistema
 
@@ -53,6 +54,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: lightMode,
         darkTheme: darkMode,
+        themeMode: themeManager.currentThemeMode,
         home: BlocConsumer<AuthCubit, AuthState>(
           builder: (context, state) {
             if (state is Unauthenticated) {

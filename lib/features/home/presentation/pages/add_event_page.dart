@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:intl/intl.dart';
 import '../../services/calendar_service.dart';
+import '../components/calendar_widget.dart';
 
 class AddEventPage extends StatefulWidget {
   final String calendarId;
   final CalendarService calendarService;
   final DateTime? initialDate;
+  //final CustomCalendarView calendar;
 
   const AddEventPage({
     super.key,
     required this.calendarId,
     required this.calendarService,
     this.initialDate,
+  //  required this.calendar,
   });
 
   @override
@@ -30,7 +33,9 @@ class _AddEventPageState extends State<AddEventPage> {
   DateTime _startDate = DateTime.now();
   TimeOfDay _startTime = TimeOfDay.now();
   DateTime _endDate = DateTime.now().add(const Duration(hours: 1));
-  TimeOfDay _endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+  TimeOfDay _endTime = TimeOfDay.fromDateTime(
+    DateTime.now().add(const Duration(hours: 1)),
+  );
   bool _isAllDay = false;
   bool _isLoading = false;
 
@@ -41,7 +46,9 @@ class _AddEventPageState extends State<AddEventPage> {
       _startDate = widget.initialDate!;
       _endDate = widget.initialDate!.add(const Duration(hours: 1));
       _startTime = TimeOfDay.fromDateTime(widget.initialDate!);
-      _endTime = TimeOfDay.fromDateTime(widget.initialDate!.add(const Duration(hours: 1)));
+      _endTime = TimeOfDay.fromDateTime(
+        widget.initialDate!.add(const Duration(hours: 1)),
+      );
     }
     _dateFormat = DateFormat('dd/MM/yyyy');
     _timeFormat = DateFormat('HH:mm');
@@ -61,7 +68,13 @@ class _AddEventPageState extends State<AddEventPage> {
 
   String _formatTime(TimeOfDay time) {
     final now = DateTime.now();
-    final datetime = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    final datetime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
     return _timeFormat.format(datetime);
   }
 
@@ -73,7 +86,7 @@ class _AddEventPageState extends State<AddEventPage> {
       lastDate: DateTime(2030),
       locale: const Locale('es', 'ES'),
     );
-    
+
     if (picked != null) {
       setState(() {
         if (isStart) {
@@ -101,7 +114,7 @@ class _AddEventPageState extends State<AddEventPage> {
         );
       },
     );
-    
+
     if (picked != null) {
       setState(() {
         if (isStart) {
@@ -113,7 +126,7 @@ class _AddEventPageState extends State<AddEventPage> {
             _startTime.hour,
             _startTime.minute,
           );
-          
+
           // Ajustar la hora de fin si es necesario
           final newStartDateTime = DateTime(
             _startDate.year,
@@ -129,7 +142,7 @@ class _AddEventPageState extends State<AddEventPage> {
             _endTime.hour,
             _endTime.minute,
           );
-          
+
           if (newStartDateTime.isAfter(currentEndDateTime)) {
             _endTime = TimeOfDay(
               hour: (_startTime.hour + 1) % 24,
@@ -158,13 +171,7 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   DateTime _combineDateAndTime(DateTime date, TimeOfDay time) {
-    return DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
   Future<void> _createEvent() async {
@@ -179,8 +186,8 @@ class _AddEventPageState extends State<AddEventPage> {
     try {
       final event = gcal.Event()
         ..summary = _titleController.text.trim()
-        ..description = _descriptionController.text.trim().isEmpty 
-            ? null 
+        ..description = _descriptionController.text.trim().isEmpty
+            ? null
             : _descriptionController.text.trim()
         ..location = _locationController.text.trim().isEmpty
             ? null
@@ -200,11 +207,11 @@ class _AddEventPageState extends State<AddEventPage> {
         event.start = gcal.EventDateTime()
           ..dateTime = startDateTime
           ..timeZone = 'UTC-3';
-         // ..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
+        // ..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
         event.end = gcal.EventDateTime()
           ..dateTime = endDateTime
           ..timeZone = 'UTC-3';
-          //..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
+        //..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
       }
 
       await widget.calendarService.addEvent(calendarId: widget.calendarId, event: event );
@@ -216,6 +223,8 @@ class _AddEventPageState extends State<AddEventPage> {
             backgroundColor: Colors.green,
           ),
         );
+
+        //widget.calendar.addEvent(event);
         Navigator.of(context).pop(true); // Retornar éxito
       }
     } catch (e) {
@@ -235,7 +244,8 @@ class _AddEventPageState extends State<AddEventPage> {
       }
     }
   }
-/*
+
+  /*
   String _formatDate(DateTime date) {
     return DateFormat('dd/MM/yyyy', 'es_ES').format(date);
   }
@@ -247,7 +257,10 @@ class _AddEventPageState extends State<AddEventPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         title: const Text('Nuevo Evento'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -255,24 +268,34 @@ class _AddEventPageState extends State<AddEventPage> {
         ),
         actions: [
           if (_isLoading)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(16.0),
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
               ),
             )
           else
             IconButton(
-              icon: const Icon(Icons.save),
+              icon: Icon(
+                Icons.save,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
               onPressed: _createEvent,
               tooltip: 'Guardar evento',
             ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+            )
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -282,10 +305,24 @@ class _AddEventPageState extends State<AddEventPage> {
                     // Título del evento
                     TextFormField(
                       controller: _titleController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      decoration: InputDecoration(
                         labelText: 'Título del evento *',
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.title),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.title,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -299,37 +336,56 @@ class _AddEventPageState extends State<AddEventPage> {
                     // Descripción
                     TextFormField(
                       controller: _descriptionController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      decoration: InputDecoration(
                         labelText: 'Descripción',
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.description),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.description,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 16),
-
-                    // Ubicación
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: const InputDecoration(
-                        labelText: 'Ubicación',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.location_on),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
                     // Todo el día
                     Card(
+                      color: Theme.of(context).colorScheme.secondary,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
                           children: [
-                            const Icon(Icons.calendar_today, size: 20),
+                            Icon(
+                              Icons.calendar_today,
+                              size: 20,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                             const SizedBox(width: 12),
-                            const Text(
+                            Text(
                               'Todo el día',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                             ),
                             const Spacer(),
                             Switch(
@@ -348,18 +404,30 @@ class _AddEventPageState extends State<AddEventPage> {
 
                     // Fecha y hora de inicio
                     Card(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(Icons.access_time, size: 20),
-                                SizedBox(width: 12),
+                                Icon(
+                                  Icons.access_time,
+                                  size: 20,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 12),
                                 Text(
                                   'Inicio',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ],
                             ),
@@ -369,6 +437,16 @@ class _AddEventPageState extends State<AddEventPage> {
                                 Expanded(
                                   child: OutlinedButton(
                                     onPressed: () => _selectDate(context, true),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                      side: BorderSide(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outline,
+                                      ),
+                                    ),
                                     child: Text(_formatDate(_startDate)),
                                   ),
                                 ),
@@ -376,7 +454,18 @@ class _AddEventPageState extends State<AddEventPage> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: () => _selectTime(context, true),
+                                      onPressed: () =>
+                                          _selectTime(context, true),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                        side: BorderSide(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.outline,
+                                        ),
+                                      ),
                                       child: Text(_formatTime(_startTime)),
                                     ),
                                   ),
@@ -391,18 +480,30 @@ class _AddEventPageState extends State<AddEventPage> {
 
                     // Fecha y hora de fin
                     Card(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(Icons.timer_off, size: 20),
-                                SizedBox(width: 12),
+                                Icon(
+                                  Icons.timer_off,
+                                  size: 20,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 12),
                                 Text(
                                   'Fin',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ],
                             ),
@@ -411,7 +512,18 @@ class _AddEventPageState extends State<AddEventPage> {
                               children: [
                                 Expanded(
                                   child: OutlinedButton(
-                                    onPressed: () => _selectDate(context, false),
+                                    onPressed: () =>
+                                        _selectDate(context, false),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                      side: BorderSide(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outline,
+                                      ),
+                                    ),
                                     child: Text(_formatDate(_endDate)),
                                   ),
                                 ),
@@ -419,7 +531,18 @@ class _AddEventPageState extends State<AddEventPage> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: () => _selectTime(context, false),
+                                      onPressed: () =>
+                                          _selectTime(context, false),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                        side: BorderSide(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.outline,
+                                        ),
+                                      ),
                                       child: Text(_formatTime(_endTime)),
                                     ),
                                   ),

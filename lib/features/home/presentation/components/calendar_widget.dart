@@ -13,6 +13,7 @@ class CustomCalendarView extends StatefulWidget {
   final CalendarService calendarService;
   final EventsController eventsController;
   final Mode calendarMode;
+  final Color? backgrouncolor;
 
   const CustomCalendarView({
     super.key,
@@ -20,10 +21,20 @@ class CustomCalendarView extends StatefulWidget {
     required this.calendarService,
     required this.eventsController,
     required this.calendarMode,
+    this.backgrouncolor
   });
 
   @override
   State<CustomCalendarView> createState() => _CustomCalendarViewState();
+
+  void addEvent(Event aEvent) {
+    List<Event> lista= List.empty();
+    lista.add(aEvent);
+    eventsController.updateCalendarData((calendarData) {
+      calendarData.addEvents(lista);
+    });    
+  }
+
 }
 
 class _CustomCalendarViewState extends State<CustomCalendarView> {
@@ -70,7 +81,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
         description: googleEvent.description ?? '',
         startTime: startDate,
         endTime: endDate,
-        color: Colors.blue,
+        color: widget.backgrouncolor ?? Colors.blue,
         isFullDay: googleEvent.start?.date != null
       );
     }).toList();

@@ -1,5 +1,6 @@
 import 'package:agenda_century/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:agenda_century/features/auth/presentation/cubits/auth_states.dart';
+import 'package:agenda_century/features/home/presentation/components/calendar_widget.dart';
 import 'package:agenda_century/features/home/presentation/pages/show_calendar_list_page.dart';
 import 'package:agenda_century/features/home/presentation/pages/show_calendar_page.dart';
 import 'package:agenda_century/features/home/services/calendar_service.dart';
@@ -104,6 +105,7 @@ class _HomePageState extends State<HomePage> {
       return ShowCalendarPage(
         calendarId: _selectedCalendar?.id ?? '',
         calendar: _selectedCalendar,
+       // summary: _selectedCalendar!.summary ?? 'Calendario ',
         togglePages: _onBackToList,
         calendarService: _calendarService,
         eventsController: widget.eventsController, // Pasar el controller

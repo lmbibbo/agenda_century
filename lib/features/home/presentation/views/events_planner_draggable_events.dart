@@ -67,28 +67,69 @@ class PlannerEventsDrag extends StatelessWidget {
         topLeftCellBuilder: (day) => Center(
           child: Text(
             DateFormat("MMM").format(day),
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
+        dayHeaderBuilder: (day, isToday) {
+          return Container(
+            decoration: BoxDecoration(
+              color: isToday
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                /*Text(
+                  DateFormat("E").format(day), // Día de la semana (Lun, Mar, etc.)
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isToday 
+                        ? Theme.of(context).colorScheme.onPrimary 
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),*/
+                SizedBox(height: 2),
+                Container(
+                  //width: 32,
+                  //height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isToday
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.transparent,
+                    border: isToday
+                        ? null
+                        : Border.all(color: Colors.transparent, width: 1),
+                  ),
+                  child: Center(
+                    child: Text(
+                      DateFormat("d").format(day), // Día del mes
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isToday
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
       fullDayParam: FullDayParam(fullDayEventsBarHeight: 50),
     );
   }
-/*
-  DefaultDayHeader getDayHeader(
-    DateTime day,
-    bool isToday,
-    BuildContext context,
-  ) {
-    return DefaultDayHeader(
-      dayText: DateFormat("E d").format(day),
-      isToday: isToday,
-      foregroundColor: isDarkMode
-          ? Theme.of(context).colorScheme.primary
-          : Colors.yellow,
-    );
-  }
-*/
+
   DraggableEventWidget draggableEvent(
     BuildContext context,
     Event event,
@@ -115,12 +156,15 @@ class PlannerEventsDrag extends StatelessWidget {
       ),
     );
   }
-  
+
   String _horasEvento(Event event) {
     if (event.startTime != null && event.endTime != null) {
-      String horasStr = event.title! + ": " +
-        DateFormat("HH:mm").format(event.startTime!) + " - " +
-        DateFormat("HH:mm").format(event.endTime!);      
+      String horasStr =
+          event.title! +
+          ": " +
+          DateFormat("HH:mm").format(event.startTime!) +
+          " - " +
+          DateFormat("HH:mm").format(event.endTime!);
       return horasStr;
     }
     return event.title!;

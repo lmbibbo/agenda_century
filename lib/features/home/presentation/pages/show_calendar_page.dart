@@ -5,7 +5,7 @@ import 'add_event_page.dart';
 import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import '../enumerations.dart';
-import '../../../../globals.dart';
+import '../../../themes/theme_manager.dart';
 
 class ShowCalendarPage extends StatefulWidget {
   final String calendarId;
@@ -39,7 +39,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
 
   void _changeThemeMode(ThemeMode newThemeMode) {
     setState(() {
-      currentThemeMode = newThemeMode;
+      themeManager.setThemeMode(newThemeMode);
     });
     print('Modo de tema cambiado a: $newThemeMode');
   }
@@ -56,19 +56,12 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
 
   // Método para determinar si estamos en dark mode
   bool get _isDarkMode {
-    switch (currentThemeMode) {
-      case ThemeMode.dark:
-        return true;
-      case ThemeMode.light:
-        return false;
-      case ThemeMode.system:
-        return MediaQuery.of(context).platformBrightness == Brightness.dark;
-    }
+    return themeManager.currentThemeMode == ThemeMode.dark;
   }
 
   // Método para obtener el icono del tema actual
   IconData get _themeIcon {
-    switch (currentThemeMode) {
+    switch (themeManager.currentThemeMode) {
       case ThemeMode.dark:
         return Icons.dark_mode;
       case ThemeMode.light:
@@ -84,7 +77,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       locale: const Locale('es', 'ES'), // Establecer español como idioma
       theme: ThemeData.light(), // Tema claro
       darkTheme: ThemeData.dark(), // Tema oscuro
-      themeMode: currentThemeMode, // Modo actual del tema
+      themeMode: themeManager.currentThemeMode, // Modo actual del tema
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
@@ -162,6 +155,7 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       calendarService: widget.calendarService,
       eventsController: widget.eventsController,
       calendarMode: _currentMode,
+      backgrouncolor: _parseColor(widget.calendar!.backgroundColor!)
     );
   }
 
@@ -236,7 +230,7 @@ void _showAddEventDialog(BuildContext context) async {
     String title,
     String subtitle,
   ) {
-    final bool isSelected = currentThemeMode == themeMode;
+    final bool isSelected = themeManager.currentThemeMode == themeMode;
 
     return ListTile(
       leading: Icon(
@@ -258,4 +252,14 @@ void _showAddEventDialog(BuildContext context) async {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
+
+    Color _parseColor(String colorHex) {
+    try {
+      final hexCode = colorHex.replaceFirst('#', '');
+      return Color(int.parse('FF$hexCode', radix: 16));
+    } catch (e) {
+      return Colors.grey;
+    }
+  }
+
 }
