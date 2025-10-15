@@ -14,6 +14,7 @@ import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'features/themes/theme_manager.dart';
+import 'globals.dart';
 
 var currentThemeMode = ThemeMode.system; // Modo por defecto: sistema
 
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
       // ❌ ELIMINAR CalendarControllerProvider - NO EXISTE en infinite_calendar_view
       child: MaterialApp(
         title: 'Agenda de Salas',
+        navigatorObservers: [routeObserver],
         localizationsDelegates: const [
           // ... app-specific localization delegate[s] here
           GlobalMaterialLocalizations.delegate,

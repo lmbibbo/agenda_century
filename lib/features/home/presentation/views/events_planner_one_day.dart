@@ -2,6 +2,7 @@ import 'widgets/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import 'package:intl/intl.dart';
+import '../../../../globals.dart';
 
 class PlannerOneDay extends StatefulWidget {
   final dynamic eventsController;
@@ -12,9 +13,41 @@ class PlannerOneDay extends StatefulWidget {
   State<PlannerOneDay> createState() => _PlannerOneDayState();
 }
 
-class _PlannerOneDayState extends State<PlannerOneDay> {
+class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
   GlobalKey<EventsPlannerState> oneDayViewKey = GlobalKey<EventsPlannerState>();
   late DateTime selectedDay;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 3. Registrar esta pantalla con el RouteObserver
+    routeObserver.unsubscribe(this);
+    routeObserver.subscribe(this,  ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    // 4. Limpiar suscripción
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // 5. Métodos del ciclo de vida
+  @override
+  void didPush() {
+    print('HomePage: didPush - Pantalla apareció');
+  }
+
+  @override
+  void didPopNext() {
+    print('HomePage: didPopNext - Pantalla volvió a ser visible');
+  }
+
+@override
+  void didPop() {
+    print('HomePage: didPop - Pantalla volvió a ser visible');
+  }
+
 
   @override
   void initState() {
@@ -112,12 +145,15 @@ class _PlannerOneDayState extends State<PlannerOneDay> {
       },
     );
   }
-  
+
   String _horasEvento(Event event) {
     if (event.startTime != null && event.endTime != null) {
-      String horasStr = event.title! + ": " +
-        DateFormat("HH:mm").format(event.startTime!) + " - " +
-        DateFormat("HH:mm").format(event.endTime!);      
+      String horasStr =
+          event.title! +
+          ": " +
+          DateFormat("HH:mm").format(event.startTime!) +
+          " - " +
+          DateFormat("HH:mm").format(event.endTime!);
       return horasStr;
     }
     return event.title!;

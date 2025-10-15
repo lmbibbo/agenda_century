@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:intl/intl.dart';
+import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import '../../services/calendar_service.dart';
-import '../components/calendar_widget.dart';
 
 class AddEventPage extends StatefulWidget {
   final String calendarId;
   final CalendarService calendarService;
   final DateTime? initialDate;
+  final EventsController eventsController;
+  final Color backgrouncolor;
   //final CustomCalendarView calendar;
 
   const AddEventPage({
@@ -15,7 +17,9 @@ class AddEventPage extends StatefulWidget {
     required this.calendarId,
     required this.calendarService,
     this.initialDate,
-  //  required this.calendar,
+    required this.eventsController,
+    required this.backgrouncolor,
+    //  required this.calendar,
   });
 
   @override
@@ -214,7 +218,11 @@ class _AddEventPageState extends State<AddEventPage> {
         //..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
       }
 
-      await widget.calendarService.addEvent(calendarId: widget.calendarId, event: event );
+      await widget.calendarService.addEvent(
+        calendarId: widget.calendarId,
+        event: event,
+      );
+      await _addEventToCalendar(event);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -558,5 +566,39 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
             ),
     );
+  }
+
+  Future<void> _addEventToCalendar(gcal.Event event) async {
+    _convertToCalendarEvents([event]);
+  }
+
+  void _convertToCalendarEvents(List<gcal.Event> googleEvents) {
+    final calendarEvents = googleEvents.map((googleEvent) {
+      DateTime startDate;
+      DateTime endDate;
+      if (googleEvent.start?.dateTime != null) {
+        startDate = googleEvent.start!.dateTime!.toLocal();
+        endDate =
+            googleEvent.end?.dateTime?.toLocal() ??
+            startDate.add(const Duration(hours: 1));
+      } else {
+        startDate = DateTime.now().toLocal();
+        endDate = startDate.add(const Duration(hours: 1));
+      }
+
+      return Event(
+        title: googleEvent.summary ?? 'No Title',
+        description: googleEvent.description ?? '',
+        startTime: startDate,
+        endTime: endDate,
+        color: widget.backgrouncolor ?? Colors.blue,
+        isFullDay: googleEvent.start?.date != null,
+      );
+    }).toList();
+
+    widget.eventsController.updateCalendarData((calendarData) {
+      calendarData.addEvents(calendarEvents);
+      print(calendarData.toString());
+    });
   }
 }

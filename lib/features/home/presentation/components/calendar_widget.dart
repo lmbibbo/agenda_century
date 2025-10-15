@@ -26,15 +26,6 @@ class CustomCalendarView extends StatefulWidget {
 
   @override
   State<CustomCalendarView> createState() => _CustomCalendarViewState();
-
-  void addEvent(Event aEvent) {
-    List<Event> lista= List.empty();
-    lista.add(aEvent);
-    eventsController.updateCalendarData((calendarData) {
-      calendarData.addEvents(lista);
-    });    
-  }
-
 }
 
 class _CustomCalendarViewState extends State<CustomCalendarView> {

@@ -166,6 +166,8 @@ void _showAddEventDialog(BuildContext context) async {
       builder: (context) => AddEventPage(
         calendarId: widget.calendarId,
         calendarService: widget.calendarService,
+        eventsController: widget.eventsController,
+        backgrouncolor:  _parseColor(widget.calendar!.backgroundColor!),
         initialDate: DateTime.now(), // O la fecha seleccionada en el calendario
       ),
     ),
