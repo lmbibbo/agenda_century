@@ -46,7 +46,6 @@ class MyApp extends StatelessWidget {
       // ❌ ELIMINAR CalendarControllerProvider - NO EXISTE en infinite_calendar_view
       child: MaterialApp(
         title: 'Agenda de Salas',
-        navigatorObservers: [routeObserver],
         localizationsDelegates: const [
           // ... app-specific localization delegate[s] here
           GlobalMaterialLocalizations.delegate,

@@ -29,7 +29,6 @@ class CustomCalendarView extends StatefulWidget {
 }
 
 class _CustomCalendarViewState extends State<CustomCalendarView> {
-  late EventsController _eventsController;
   final double _heightPerMinute = 1.0;
   final double _initialVerticalScrollOffset = 1.0 * 7 * 60;
 
@@ -37,7 +36,6 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
   @override
   void initState() {
     super.initState();
-    _eventsController = EventsController();
     _loadCalendarEvents();
   }
 
@@ -77,7 +75,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
       );
     }).toList();
 
-    _eventsController.updateCalendarData((calendarData) {
+    widget.eventsController.updateCalendarData((calendarData) {
       calendarData.addEvents(calendarEvents);
     });
   }
@@ -86,10 +84,10 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
   Widget build(BuildContext context) {
 
     return switch (widget.calendarMode) {
-      Mode.agenda => EventsListView(eventsController: _eventsController),
-      Mode.day => PlannerOneDay(eventsController: _eventsController),
-      Mode.day7 => PlannerEventsDrag(eventsController: _eventsController, key: UniqueKey(), daysShowed: 7),
-      Mode.day3Draggable => PlannerEventsDrag(eventsController: _eventsController, key: UniqueKey(), daysShowed: 3),
+      Mode.agenda => EventsListView(eventsController: widget.eventsController),
+      Mode.day => PlannerOneDay(eventsController: widget.eventsController),
+      Mode.day7 => PlannerEventsDrag(eventsController: widget.eventsController, key: UniqueKey(), daysShowed: 7),
+      Mode.day3Draggable => PlannerEventsDrag(eventsController: widget.eventsController, key: UniqueKey(), daysShowed: 3),
 
       /*// TODO: Handle this case.
       Mode.month => throw UnimplementedError(),
@@ -109,7 +107,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
       // TODO: Handle this case.
       Mode.day3 => throw UnimplementedError(),*/
       // TODO: Handle this case.
-      Mode.month => Months(eventsController: _eventsController),
+      Mode.month => Months(eventsController: widget.eventsController),
     };
   }
 }

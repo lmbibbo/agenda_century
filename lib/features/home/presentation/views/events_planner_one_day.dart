@@ -20,34 +20,12 @@ class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 3. Registrar esta pantalla con el RouteObserver
-    routeObserver.unsubscribe(this);
-    routeObserver.subscribe(this,  ModalRoute.of(context)!);
   }
 
   @override
   void dispose() {
-    // 4. Limpiar suscripción
-    routeObserver.unsubscribe(this);
     super.dispose();
   }
-
-  // 5. Métodos del ciclo de vida
-  @override
-  void didPush() {
-    print('HomePage: didPush - Pantalla apareció');
-  }
-
-  @override
-  void didPopNext() {
-    print('HomePage: didPopNext - Pantalla volvió a ser visible');
-  }
-
-@override
-  void didPop() {
-    print('HomePage: didPop - Pantalla volvió a ser visible');
-  }
-
 
   @override
   void initState() {
