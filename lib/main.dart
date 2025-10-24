@@ -22,6 +22,7 @@ void main() async {
   // firebase setup
   Intl.defaultLocale = 'es_ES';
   WidgetsFlutterBinding.ensureInitialized();
+  //qFirebase.initializeApp();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   
   // run app
