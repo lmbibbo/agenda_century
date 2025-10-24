@@ -14,7 +14,6 @@ import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'features/themes/theme_manager.dart';
-import 'globals.dart';
 
 var currentThemeMode = ThemeMode.system; // Modo por defecto: sistema
 
@@ -53,7 +52,7 @@ class MyApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        debugShowCheckedModeBanner: false,
+        debugShowCheckedModeBanner: false,        
         theme: lightMode,
         darkTheme: darkMode,
         themeMode: themeManager.currentThemeMode,

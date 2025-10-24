@@ -6,6 +6,7 @@ import '../enumerations.dart';
 import '../views/events_list.dart';
 import '../views/events_planner_one_day.dart';
 import '../views/events_planner_draggable_events.dart';
+import '../views/events_planner_three_days.dart';
 import '../views/events_months.dart';
 
 class CustomCalendarView extends StatefulWidget {
@@ -41,6 +42,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
 
   Future<void> _loadCalendarEvents() async {
     try {
+      
       final events = await widget.calendarService.getEvents(
         calendarId: widget.calendarId,
         timeMin: DateTime.now().subtract(const Duration(days: 30)).toUtc(),
@@ -75,6 +77,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
       );
     }).toList();
 
+    widget.eventsController.calendarData.clearAll();
     widget.eventsController.updateCalendarData((calendarData) {
       calendarData.addEvents(calendarEvents);
     });
@@ -87,7 +90,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
       Mode.agenda => EventsListView(eventsController: widget.eventsController),
       Mode.day => PlannerOneDay(eventsController: widget.eventsController),
       Mode.day7 => PlannerEventsDrag(eventsController: widget.eventsController, key: UniqueKey(), daysShowed: 7),
-      Mode.day3Draggable => PlannerEventsDrag(eventsController: widget.eventsController, key: UniqueKey(), daysShowed: 3),
+      Mode.day3Draggable => PlannerTreeDays(eventsController: widget.eventsController),
 
       /*// TODO: Handle this case.
       Mode.month => throw UnimplementedError(),

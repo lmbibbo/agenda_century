@@ -45,18 +45,13 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
   }
 
   List<Mode> _getMainModes() {
-    return [Mode.agenda, Mode.day, Mode.day3Draggable, Mode.day7, Mode.month];
+    return [Mode.agenda, Mode.day, Mode.day3Draggable];
   }
 
   List<Mode> _getAdditionalModes() {
     return Mode.values
         .where((mode) => !_getMainModes().contains(mode))
         .toList();
-  }
-
-  // Método para determinar si estamos en dark mode
-  bool get _isDarkMode {
-    return themeManager.currentThemeMode == ThemeMode.dark;
   }
 
   // Método para obtener el icono del tema actual
