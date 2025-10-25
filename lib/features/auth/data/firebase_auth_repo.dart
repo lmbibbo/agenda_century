@@ -154,23 +154,35 @@ class FirebaseAuthRepo implements AuthRepo {
     try {
       initSignIn();
       final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
-      print('1. Google authentication completed: ${googleUser != null}');
 
+      if (googleUser == null) {
+        print('Usuario canceló el sign-in');
+        return null;
+      }
+      print('1. Google authentication completed: true');
+      print('2. Usuario obtenido: ${googleUser.email}');
+      print('3. Display Name: ${googleUser.displayName}');
+      print('4. ID: ${googleUser.id}');
 
       final idToken = googleUser.authentication.idToken;
-      if (idToken!= null)
-        print('2. ID Token obtained: ${idToken}');
+      if (idToken != null) print('2. ID Token obtained: ${idToken}');
 
       final authorizationClient = googleUser.authorizationClient;
       print('3. Authorization client obtained: ${authorizationClient != null}');
-      print('3. Authorization client obtained: ${authorizationClient.toString()}');
-      
+      print(
+        '3. Authorization client obtained: ${authorizationClient.toString()}',
+      );
+
       GoogleSignInClientAuthorization? authorization = await authorizationClient
-          .authorizationForScopes(['https://www.googleapis.com/auth/calendar',
-      'https://www.googleapis.com/auth/calendar.events',]);
+          .authorizationForScopes([
+            'https://www.googleapis.com/auth/calendar',
+            'https://www.googleapis.com/auth/calendar.events',
+          ]);
 
       if (authorization?.accessToken != null)
-        print('4. First authorization attempt - Access Token: ${authorization?.accessToken}' );
+        print(
+          '4. First authorization attempt - Access Token: ${authorization?.accessToken}',
+        );
 
       final accessToken = authorization?.accessToken;
       if (accessToken == null) {

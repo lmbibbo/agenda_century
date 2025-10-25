@@ -23,23 +23,21 @@ class ShowCalendarListPage extends StatefulWidget {
 
 class _ShowCalendarListPageState extends State<ShowCalendarListPage> {
   // Separar calendarios en dos listas
-  List<CalendarListEntry> get _salasCenturyCalendars {
+  List<CalendarListEntry> get _ownCalendars {
     return widget.calendars.where((calendar) {
-      return calendar.id?.contains('salascentury70@gmail.com') == true ||
-             calendar.summary?.toLowerCase().contains('salas') == true ||
-             calendar.description?.toLowerCase().contains('salascentury') == true;
+      return calendar.accessRole?.contains('owner') == true;
     }).toList();
   }
 
   List<CalendarListEntry> get _otherCalendars {
     return widget.calendars.where((calendar) {
-      return !_salasCenturyCalendars.contains(calendar);
+      return !_ownCalendars.contains(calendar);
     }).toList();
   }
 
-  bool get _hasSalasCenturyCalendars => _salasCenturyCalendars.isNotEmpty;
+  bool get _hasOwnCalendars => _ownCalendars.isNotEmpty;
   bool get _hasOtherCalendars => _otherCalendars.isNotEmpty;
-  bool get _hasAnyCalendars => _hasSalasCenturyCalendars || _hasOtherCalendars;
+  bool get _hasAnyCalendars => _hasOwnCalendars || _hasOtherCalendars;
 
   @override
   Widget build(BuildContext context) {
@@ -123,13 +121,13 @@ class _ShowCalendarListPageState extends State<ShowCalendarListPage> {
           padding: const EdgeInsets.all(20),
           children: [
             // Sección de Calendarios Salas Century
-            if (_hasSalasCenturyCalendars) ...[
+            if (_hasOwnCalendars) ...[
               _buildSectionHeader(
-                title: 'Salas Century',
+                title: 'Calendarios',
                 icon: Icons.meeting_room,
               ),
               const SizedBox(height: 16),
-              _buildCalendarList(_salasCenturyCalendars),
+              _buildCalendarList(_otherCalendars),
               const SizedBox(height: 24),
             ],
             
@@ -140,7 +138,7 @@ class _ShowCalendarListPageState extends State<ShowCalendarListPage> {
                 icon: Icons.calendar_today,
               ),
               const SizedBox(height: 16),
-              _buildCalendarList(_otherCalendars),
+              _buildCalendarList(_ownCalendars),
             ],
           ],
         ),

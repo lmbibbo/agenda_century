@@ -2,7 +2,7 @@ import 'widgets/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import 'package:intl/intl.dart';
-import '../../../../globals.dart';
+import '../utils.dart';
 
 class PlannerOneDay extends StatefulWidget {
   final dynamic eventsController;
@@ -82,24 +82,23 @@ class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
                 return DefaultDayEvent(
                   height: height,
                   width: width,
-                  title: _horasEvento(event),
+                  title: horasEvento(event),
                   description: event.description,
                   color: event.color,
                   textColor: event.textColor,
                   roundBorderRadius: 15,
                   horizontalPadding: 8,
                   verticalPadding: 4,
-                  onTap: () => print("tap ${event.uniqueId}"),
+                  onTap: () => showEventModal(context, event),
                   onTapDown: (details) => print("tapdown ${event.uniqueId}"),
                 );
               },
               slotSelectionParam: SlotSelectionParam(
                 enableTapSlotSelection: true,
                 enableLongPressSlotSelection: true,
-                onSlotSelectionTap: (slot) => print(
-                  slot.startDateTime.toString() +
-                      " : " +
-                      slot.durationInMinutes.toString(),
+                onSlotSelectionTap: (slot) => showSnack(
+                  context,
+                  "Hola ${slot.startDateTime} : ${slot.durationInMinutes}",
                 ),
               ),
             ),
@@ -124,16 +123,4 @@ class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
     );
   }
 
-  String _horasEvento(Event event) {
-    if (event.startTime != null && event.endTime != null) {
-      String horasStr =
-          event.title! +
-          ": " +
-          DateFormat("HH:mm").format(event.startTime!) +
-          " - " +
-          DateFormat("HH:mm").format(event.endTime!);
-      return horasStr;
-    }
-    return event.title!;
-  }
 }

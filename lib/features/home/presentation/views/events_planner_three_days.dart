@@ -47,15 +47,15 @@ class PlannerTreeDays extends StatelessWidget {
           return DefaultDayEvent(
             height: height,
             width: width,
-            title: _horasEvento(event),
+            title: horasEvento(event),
             description: event.description,
             color: event.color,
             textColor: event.textColor,
             roundBorderRadius: 15,
             horizontalPadding: 8,
             verticalPadding: 4,
-            onTap: () => print("tap ${event.uniqueId}"),
-            onTapDown: (details) => print("tapdown ${event.uniqueId}"),
+            onTap: () => showEventModal(context, event),
+            onTapDown: (details) => print("tapdown ${event.uniqueId} details ${details}"),
           );
         },
 
@@ -64,24 +64,11 @@ class PlannerTreeDays extends StatelessWidget {
           enableLongPressSlotSelection: true,
           onSlotSelectionTap: (slot) => showSnack(
             context,
-            "${slot.startDateTime} : ${slot.durationInMinutes}",
+            "Hola ${slot.startDateTime} : ${slot.durationInMinutes}",
           ),
         ),
       ),
     );
-  }
-
-String _horasEvento(Event event) {
-    if (event.startTime != null && event.endTime != null) {
-      String horasStr =
-          event.title! +
-          ": " +
-          DateFormat("HH:mm").format(event.startTime!) +
-          " - " +
-          DateFormat("HH:mm").format(event.endTime!);
-      return horasStr;
-    }
-    return event.title!;
   }
 
 }
