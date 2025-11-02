@@ -43,6 +43,7 @@ class FirebaseAuthRepo implements AuthRepo {
     String name,
   ) async {
     try {
+      print('Registering user with email: $email and name: $name');
       UserCredential userCredential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
       AppUser user = AppUser(
@@ -50,6 +51,7 @@ class FirebaseAuthRepo implements AuthRepo {
         id: userCredential.user!.uid,
         name: name,
       );
+      print('User registered successfully: ${user.id}');
       return user;
     } catch (e) {
       // Handle errors
@@ -121,7 +123,6 @@ class FirebaseAuthRepo implements AuthRepo {
         // ✅ ESTO ES CLAVE: Forzar selección de cuenta siempre
         googleProvider.setCustomParameters({
           'prompt': 'select_account',
-          //'client_id': '722020952500-vhmb4h17660ksbt18mksb6iqusuqko75.apps.googleusercontent.com'
         });
 
         googleProvider.addScope(CalendarApi.calendarScope);
@@ -155,84 +156,51 @@ class FirebaseAuthRepo implements AuthRepo {
       initSignIn();
       final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-      if (googleUser == null) {
-        print('Usuario canceló el sign-in');
-        return null;
-      }
-      print('1. Google authentication completed: true');
-      print('2. Usuario obtenido: ${googleUser.email}');
-      print('3. Display Name: ${googleUser.displayName}');
-      print('4. ID: ${googleUser.id}');
-
       final idToken = googleUser.authentication.idToken;
-      if (idToken != null) print('2. ID Token obtained: ${idToken}');
-
       final authorizationClient = googleUser.authorizationClient;
-      print('3. Authorization client obtained: ${authorizationClient != null}');
-      print(
-        '3. Authorization client obtained: ${authorizationClient.toString()}',
-      );
-
       GoogleSignInClientAuthorization? authorization = await authorizationClient
           .authorizationForScopes([
             'https://www.googleapis.com/auth/calendar',
             'https://www.googleapis.com/auth/calendar.events',
           ]);
-
-      if (authorization?.accessToken != null)
-        print(
-          '4. First authorization attempt - Access Token: ${authorization?.accessToken}',
-        );
-
       final accessToken = authorization?.accessToken;
       if (accessToken == null) {
-        print('5. First authorization failed, trying again...');
+        print('Access Token is null, trying again...');
         final authorization2 = await authorizationClient.authorizationForScopes(
           ['calendar', 'calendar.events'],
         );
-        print(
-          '6. Second authorization attempt - Access Token: ${authorization2?.accessToken != null}',
-        );
-
         if (authorization2?.accessToken == null) {
-          print('7. Both authorization attempts failed');
+          print('Both authorization attempts failed');
           throw FirebaseAuthException(code: "error", message: "error");
         }
         authorization = authorization2;
       }
 
-      print('8. Final Access Token: ${authorization?.accessToken != null}');
-
       final credential = GoogleAuthProvider.credential(
-        accessToken: accessToken ?? authorization?.accessToken,
+        accessToken: accessToken,
         idToken: idToken,
       );
-      print('9. Google credential created');
 
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithCredential(credential);
-      print('10. Firebase sign-in completed: ${userCredential != null}');
 
       // firebase user
       final firebaseUser = userCredential.user;
-      print('11. Firebase user obtained: ${firebaseUser != null}');
-      print('12. User UID: ${firebaseUser?.uid}');
-      print('13. User email: ${firebaseUser?.email}');
-
-      // user cancelled sign-in process
-      if (firebaseUser == null) return null;
-
-      AppUser appUser = AppUser(
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        name: firebaseUser.displayName ?? '',
-      );
-      appUser.accessToken = credential.accessToken!;
-
-      return appUser;
-    } catch (e) {
-      print('Error: $e');
-      rethrow;
+      if (firebaseUser != null) {
+        AppUser appUser = AppUser(
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          name: firebaseUser.displayName ?? '',
+        );
+        appUser.accessToken = credential.accessToken!;
+        return appUser;
+      } else {
+        return null;
+      }
+    } 
+    catch (e) {
+      print('Error during mobile Google Sign-In: $e');
+       rethrow;
     }
   }
 
