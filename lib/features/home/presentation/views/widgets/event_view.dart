@@ -9,6 +9,7 @@ class EventModal extends StatelessWidget {
   final VoidCallback onClose;
   final String calendarName; // Nuevo parámetro para el nombre del calendario
   final String createdBy; // Nuevo parámetro para el creador
+  final BuildContext parentContext; // Nuevo: contexto para navegación
 
   const EventModal({
     Key? key,
@@ -18,7 +19,31 @@ class EventModal extends StatelessWidget {
     required this.onClose,
     this.calendarName = 'Calendario Principal', // Valor por defecto
     this.createdBy = 'salascentury70@gmail.com', // Valor por defecto
+    required this.parentContext,
   }) : super(key: key);
+
+  // Método estático para mostrar el modal fácilmente
+  static void show({
+    required BuildContext context,
+    required Event event,
+    required String calendarName,
+    required String createdBy,
+    required Function(Event) onEdit,
+    required Function(Event) onDelete,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => EventModal(
+        event: event,
+        parentContext: context, // Guardar el contexto original
+        calendarName: calendarName,
+        createdBy: createdBy,
+        onEdit: () => onEdit(event),
+        onDelete: () => onDelete(event),
+        onClose: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

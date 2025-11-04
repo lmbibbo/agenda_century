@@ -3,10 +3,35 @@ import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import 'package:intl/intl.dart';
 import '../utils.dart';
 
-class PlannerTreeDays extends StatelessWidget {
+class PlannerTreeDays extends StatefulWidget {
   final dynamic eventsController;
+  final dynamic calendarService; 
+  final String calendarId;
 
-  const PlannerTreeDays({super.key, required this.eventsController});
+  const PlannerTreeDays({
+    super.key, 
+    required this.eventsController,
+    required this.calendarService, 
+    required this.calendarId
+  });
+
+  @override
+  State<PlannerTreeDays> createState() => _PlannerTreeDaysState();
+}
+
+class _PlannerTreeDaysState extends State<PlannerTreeDays> {
+  late EventHandler eventHandler;
+
+  @override
+  void initState() {
+    super.initState();
+    // print(  'Calendar ID en PlannerThreeDays: ${widget.calendarId}');
+    eventHandler = EventHandler(
+      context: context,
+      eventsController: widget.eventsController,
+      calendarService: widget.calendarService,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,18 +39,16 @@ class PlannerTreeDays extends StatelessWidget {
     var initialVerticalScrollOffset = heightPerMinute * 7 * 60;
 
     return EventsPlanner(
-      controller: eventsController,
+      controller: widget.eventsController, // Usar widget.eventsController
       daysShowed: 3,
       heightPerMinute: heightPerMinute,
       initialVerticalScrollOffset: initialVerticalScrollOffset,
       offTimesParam: OffTimesParam(
         offTimesAllDaysRanges: [
-          // Oculta horas antes de las 7:00 AM
           OffTimeRange(
             TimeOfDay(hour: 0, minute: 0),
             TimeOfDay(hour: 7, minute: 0),
           ),
-          // Oculta horas después de las 21:00 (9:00 PM)
           OffTimeRange(
             TimeOfDay(hour: 21, minute: 0),
             TimeOfDay(hour: 24, minute: 0),
@@ -33,16 +56,12 @@ class PlannerTreeDays extends StatelessWidget {
         ],
         offTimesColor: Theme.of(context).scaffoldBackgroundColor,
       ),
-
       daysHeaderParam: DaysHeaderParam(
         daysHeaderVisibility: true,
         dayHeaderTextBuilder: (day) => DateFormat("E d").format(day),
         daysHeaderColor: Theme.of(context).primaryColor,
       ),
-
       dayParam: DayParam(
-        // onSlotMinutesRound: 60,
-        // onSlotRoundAlwaysBefore: true,
         dayEventBuilder: (event, height, width, heightPerMinute) {
           return DefaultDayEvent(
             height: height,
@@ -54,11 +73,10 @@ class PlannerTreeDays extends StatelessWidget {
             roundBorderRadius: 15,
             horizontalPadding: 8,
             verticalPadding: 4,
-            onTap: () => showEventModal(context, event),
+            onTap: () => eventHandler.showEventModal(event, widget.calendarId),
             onTapDown: (details) => print("tapdown ${event.uniqueId} details ${details}"),
           );
         },
-
         slotSelectionParam: SlotSelectionParam(
           enableTapSlotSelection: true,
           enableLongPressSlotSelection: true,
@@ -70,5 +88,4 @@ class PlannerTreeDays extends StatelessWidget {
       ),
     );
   }
-
 }

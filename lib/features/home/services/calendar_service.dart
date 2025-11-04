@@ -22,23 +22,21 @@ class CalendarService {
   // Como usuario de prueba de la API de Usuario A
   Future<List<CalendarListEntry>> getAvailableCalendars() async {
     try {
-      print('🔍 Obteniendo calendarios disponibles para usuario de prueba...');
+      // print('🔍 Obteniendo calendarios disponibles para usuario de prueba...');
 
       final calendarList = await _calendarApi.calendarList.list();
       final calendars = calendarList.items ?? [];
 
-      print('✅ ${calendars.length} calendarios disponibles');
+      // print('✅ ${calendars.length} calendarios disponibles');
 
       // Mostrar información de cada calendario
       for (final calendar in calendars) {
-        print(
-          '📅 ${calendar.summary} (${calendar.id}) - ${calendar.accessRole}',
-        );
+        // print('📅 ${calendar.summary} (${calendar.id}) - ${calendar.accessRole}');
       }
 
       return calendars;
     } catch (error) {
-      print('❌ Error obteniendo calendarios: $error');
+      // print('❌ Error obteniendo calendarios: $error');
       rethrow;
     }
   }
@@ -53,8 +51,8 @@ class CalendarService {
     String orderBy = 'startTime',
   }) async {
     try {
-      print('📅 Obteniendo eventos del calendario $calendarId...');
-      print('📅 Rango: $timeMin a $timeMax');
+      // print('📅 Obteniendo eventos del calendario $calendarId...');
+      // print('📅 Rango: $timeMin a $timeMax');
 
       final events = await _calendarApi.events.list(
         calendarId,
@@ -67,32 +65,32 @@ class CalendarService {
 
       final eventList = events.items ?? [];
 
-      print('✅ ${eventList.length} eventos encontrados en el calendario');
+      // print('✅ ${eventList.length} eventos encontrados en el calendario');
       for (final event in eventList) {
         final start = event.start?.dateTime ?? event.start?.date;
-        print('  - ${event.summary} ($start)');
+        // print('  - ${event.summary} ($start)');
       }
 
       return eventList;
     } catch (error) {
-      print('❌ Error obteniendo eventos: $error');
+      // print('❌ Error obteniendo eventos: $error');
       rethrow;
     }
   }
 
- // ➕ AGREGAR EVENTO A UN CALENDARIO
+  // ➕ AGREGAR EVENTO A UN CALENDARIO
   Future<Event> addEvent({
     required String calendarId,
     required Event event,
   }) async {
     try {
-      print('➕ Agregando evento al calendario $calendarId...');
+      // print('➕ Agregando evento al calendario $calendarId...');
 
       final createdEvent = await _calendarApi.events.insert(event, calendarId);
-      print('✅ Evento agregado exitosamente: ${createdEvent.id}');
+      // print('✅ Evento agregado exitosamente: ${createdEvent.id}');
       return createdEvent;
     } catch (error) {
-      print('❌ Error agregando evento: $error');
+      // print('❌ Error agregando evento: $error');
       rethrow;
     }
   }
@@ -103,13 +101,13 @@ class CalendarService {
     required String eventId,
   }) async {
     try {
-      print('🗑️ Eliminando evento $eventId del calendario $calendarId...');
-      
+      // print('🗑️ Eliminando evento $eventId del calendario $calendarId...');
+
       await _calendarApi.events.delete(calendarId, eventId);
-      
-      print('✅ Evento eliminado exitosamente');
+
+      // print('✅ Evento eliminado exitosamente');
     } catch (error) {
-      print('❌ Error eliminando evento: $error');
+      // print('❌ Error eliminando evento: $error');
       rethrow;
     }
   }
@@ -123,8 +121,8 @@ class CalendarService {
     DateTime? timeMax,
   }) async {
     try {
-      print('🔍 Buscando "$query" en calendario $calendarId...');
-      
+      // print('🔍 Buscando "$query" en calendario $calendarId...');
+
       final events = await _calendarApi.events.list(
         calendarId,
         q: query,
@@ -134,158 +132,81 @@ class CalendarService {
         singleEvents: true,
         orderBy: 'startTime',
       );
-      
+
       final eventList = events.items ?? [];
-      
-      print('✅ ${eventList.length} eventos encontrados con "$query"');
+
+      // print('✅ ${eventList.length} eventos encontrados con "$query"');
       return eventList;
     } catch (error) {
-      print('❌ Error buscando eventos: $error');
+      // print('❌ Error buscando eventos: $error');
       rethrow;
     }
   }
 
+  // En calendar_service.dart - agregar después del método addEvent
 
-  /*
-  // 🎯 OBTENER ESPECÍFICAMENTE EL CALENDARIO DE USUARIO A
-  Future<CalendarListEntry> getUserACalendar() async {
-    try {
-      print('🎯 Buscando calendario de $_userAEmail...');
-      
-      // Intentar obtener el calendario específico de Usuario A
-      final calendar = await _calendarApi.calendars.get(_userACalendarId);
-      
-      // Crear un CalendarListEntry a partir del Calendar
-      final calendarEntry = CalendarListEntry()
-        ..id = calendar.id
-        ..summary = calendar.summary
-        ..description = calendar.description
-        ..backgroundColor = calendar.backgroundColor
-        ..foregroundColor = calendar.foregroundColor;
-      
-      print('✅ Calendario de $_userAEmail encontrado: ${calendar.summary}');
-      return calendarEntry;
-    } catch (error) {
-      print('❌ Error obteniendo calendario de $_userAEmail: $error');
-      rethrow;
-    }
-  }
-
-  // 👀 OBTENER EVENTOS DEL CALENDARIO DE USUARIO A
-  Future<List<CalendarEvent>> getEventsFromUserACalendar({
-    int maxResults = 50,
-    DateTime? startDate,
-    DateTime? endDate,
+  // ✏️ ACTUALIZAR EVENTO EXISTENTE
+  Future<Event> updateEvent({
+    required String calendarId,
+    required String eventId,
+    required Event updatedEvent,
   }) async {
     try {
-      print('📅 Obteniendo eventos del calendario de $_userAEmail...');
-      
-      final events = await _calendarApi.events.list(
-        _userACalendarId, // Usar el calendarId de Usuario A
-        timeMin: startDate ?? DateTime.now().subtract(Duration(days: 30)).toUtc(),
-        timeMax: endDate,
-        maxResults: maxResults,
-        singleEvents: true,
-        orderBy: 'startTime',
+      final Event existingEvent = await getEvent(
+        calendarId: calendarId,
+        eventId: eventId,
       );
-      
-      final eventList = events.items?.map((event) => CalendarEvent.fromGoogleEvent(event)).toList() ?? [];
-      
-      print('✅ ${eventList.length} eventos encontrados en calendario de $_userAEmail');
-      return eventList;
-    } catch (error) {
-      print('❌ Error obteniendo eventos de $_userAEmail: $error');
-      rethrow;
-    }
-  }
 
-  // ➕ AGREGAR EVENTO AL CALENDARIO DE USUARIO A
-  Future<CalendarEvent> addEventToUserACalendar({
-    required String title,
-    required String description,
-    required DateTime start,
-    required DateTime end,
-    String? location,
-    List<String>? attendees, // Puede incluir al Usuario A
-  }) async {
-    try {
-      print('➕ Agregando evento al calendario de $_userAEmail...');
-      
-      final event = Event()
-        ..summary = title
-        ..description = description
-        ..location = location
-        ..start = EventDateTime(dateTime: start)
-        ..end = EventDateTime(dateTime: end);
-      
-      // Agregar attendees si se especifican
-      if (attendees != null && attendees.isNotEmpty) {
-        event.attendees = attendees.map((email) => EventAttendee()
-          ..email = email
-          ..displayName = email == _userAEmail ? 'Usuario A (Dueño)' : email
-        ).toList();
+      if (existingEvent == null) {
+        throw Exception(
+          'El evento con ID $eventId no existe en el calendario $calendarId.',
+        );
       }
-      
-      // Incluir al Usuario A como attendee por defecto
-      event.attendees ??= [];
-      event.attendees!.add(EventAttendee()
-        ..email = _userAEmail
-        ..displayName = 'Usuario A (Dueño del calendario)'
-        ..organizer = true
+      // print('✏️ Actualizando evento $eventId en calendario $calendarId...');
+      // print('📅 CalendarId: $calendarId');
+      // print('🎯 EventId: $eventId');
+      // print('📝 Event summary: ${updatedEvent.summary}');
+      // print('🕐 Event start: ${updatedEvent.start?.dateTime ?? updatedEvent.start?.date}');
+      // print('🕐 Event end: ${updatedEvent.end?.dateTime ?? updatedEvent.end?.date}');
+
+      // Preservar el eventId en el evento actualizado
+      updatedEvent.id = eventId;
+
+      final result = await _calendarApi.events.update(
+        updatedEvent,
+        calendarId,
+        eventId,
       );
-      
-      final createdEvent = await _calendarApi.events.insert(
-        event, 
-        _userACalendarId, // Insertar en calendario de Usuario A
-      );
-      
-      print('✅ Evento agregado al calendario de $_userAEmail: ${createdEvent.id}');
-      return CalendarEvent.fromGoogleEvent(createdEvent);
+
+      // print('✅ Evento actualizado exitosamente: ${result.id}');
+      return result;
     } catch (error) {
-      print('❌ Error agregando evento al calendario de $_userAEmail: $error');
+      // print('❌ Error actualizando evento: $error');
+      // print('🔍 Error details:');
+      // print('  - CalendarId: $calendarId');
+      // print('  - EventId: $eventId');
+      // print('  - Event exists: ${updatedEvent.summary != null}');
       rethrow;
     }
   }
 
-  // 🔍 BUSCAR EVENTOS EN EL CALENDARIO DE USUARIO A
-  Future<List<CalendarEvent>> searchEventsInUserACalendar({
-    required String query,
-    int maxResults = 20,
+  // 🔍 OBTENER EVENTO POR ID (útil para update)
+  Future<Event> getEvent({
+    required String calendarId,
+    required String eventId,
   }) async {
     try {
-      print('🔍 Buscando "$query" en calendario de $_userAEmail...');
-      
-      final events = await _calendarApi.events.list(
-        _userACalendarId,
-        q: query, // Query de búsqueda
-        maxResults: maxResults,
-        singleEvents: true,
-        orderBy: 'startTime',
-      );
-      
-      final eventList = events.items?.map((event) => CalendarEvent.fromGoogleEvent(event)).toList() ?? [];
-      
-      print('✅ ${eventList.length} eventos encontrados con "$query"');
-      return eventList;
+      // print('🔍 Obteniendo evento $eventId del calendario $calendarId...');
+
+      final event = await _calendarApi.events.get(calendarId, eventId);
+
+      // print('✅ Evento obtenido: ${event.summary}');
+      return event;
     } catch (error) {
-      print('❌ Error buscando eventos: $error');
+      // print('❌ Error obteniendo evento: $error');
       rethrow;
     }
   }
-
-  // 🗑️ ELIMINAR EVENTO DEL CALENDARIO DE USUARIO A
-  Future<void> deleteEventFromUserACalendar(String eventId) async {
-    try {
-      print('🗑️ Eliminando evento $eventId del calendario de $_userAEmail...');
-      
-      await _calendarApi.events.delete(_userACalendarId, eventId);
-      
-      print('✅ Evento eliminado exitosamente');
-    } catch (error) {
-      print('❌ Error eliminando evento: $error');
-      rethrow;
-    }
-  }*/
 }
 
 // ✅ CLIENTE HTTP AUTENTICADO

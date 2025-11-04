@@ -3,6 +3,7 @@ import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:intl/intl.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import '../../services/calendar_service.dart';
+import '../utils.dart';
 
 class AddEventPage extends StatefulWidget {
   final String calendarId;
@@ -10,7 +11,8 @@ class AddEventPage extends StatefulWidget {
   final DateTime? initialDate;
   final EventsController eventsController;
   final Color backgrouncolor;
-  //final CustomCalendarView calendar;
+  final Event? existingEvent;
+  final String calendarName;
 
   const AddEventPage({
     super.key,
@@ -19,7 +21,8 @@ class AddEventPage extends StatefulWidget {
     this.initialDate,
     required this.eventsController,
     required this.backgrouncolor,
-    //  required this.calendar,
+    required this.existingEvent,
+    required this.calendarName,
   });
 
   @override
@@ -42,11 +45,18 @@ class _AddEventPageState extends State<AddEventPage> {
   );
   bool _isAllDay = false;
   bool _isLoading = false;
+  bool _isEditing = false; // Nuevo: indica si estamos editando
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialDate != null) {
+
+    _isEditing = widget.existingEvent != null;
+
+    if (_isEditing) {
+      // Cargar datos del evento existente
+      _loadExistingEventData();
+    } else if (widget.initialDate != null) {
       _startDate = widget.initialDate!;
       _endDate = widget.initialDate!.add(const Duration(hours: 1));
       _startTime = TimeOfDay.fromDateTime(widget.initialDate!);
@@ -54,8 +64,30 @@ class _AddEventPageState extends State<AddEventPage> {
         widget.initialDate!.add(const Duration(hours: 1)),
       );
     }
+
     _dateFormat = DateFormat('dd/MM/yyyy');
     _timeFormat = DateFormat('HH:mm');
+  }
+
+  void _loadExistingEventData() {
+
+    if (widget.existingEvent == null) {
+      print("No hay evento existente para cargar");
+      return;
+    }
+
+    final event = widget.existingEvent!;
+
+    _titleController.text = event.title ?? '';
+    _descriptionController.text = event.description ?? '';
+
+    _startDate = event.startTime;
+    _endDate = event.endTime ?? event.startTime.add(const Duration(hours: 1));
+
+    _startTime = TimeOfDay.fromDateTime(event.startTime);
+    _endTime = TimeOfDay.fromDateTime(_endDate);
+
+    _isAllDay = event.isFullDay;
   }
 
   @override
@@ -211,37 +243,41 @@ class _AddEventPageState extends State<AddEventPage> {
         event.start = gcal.EventDateTime()
           ..dateTime = startDateTime
           ..timeZone = 'UTC-3';
-        // ..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
         event.end = gcal.EventDateTime()
           ..dateTime = endDateTime
           ..timeZone = 'UTC-3';
-        //..timeZone = 'Europe/Madrid'; // Ajusta según tu zona horaria
       }
 
-      await widget.calendarService.addEvent(
-        calendarId: widget.calendarId,
-        event: event,
-      );
-      await _addEventToCalendar(event);
+      if (_isEditing) {
+        // Actualizar evento existente
+        await _updateEvent(event);
+      } else {
+        // Crear nuevo evento
+        await widget.calendarService.addEvent(
+          calendarId: widget.calendarId,
+          event: event,
+        );
+        await _addEventToCalendar(event);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Evento creado exitosamente'),
+          SnackBar(
+            content: Text(
+              _isEditing
+                  ? 'Evento actualizado exitosamente'
+                  : 'Evento creado exitosamente',
+            ),
             backgroundColor: Colors.green,
           ),
         );
 
-        //widget.calendar.addEvent(event);
         Navigator.of(context).pop(true); // Retornar éxito
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al crear el evento: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -253,15 +289,31 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
-  /*
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy', 'es_ES').format(date);
+  Future<void> _updateEvent(gcal.Event updatedEvent) async {
+    if (widget.existingEvent == null) {
+      print("no hay evento existente para actualizar");
+      return;
+    }
+
+    /* widget.calendarService.deleteEvent(calendarId: widget.calendarId, eventId: getGoogleEventId(widget.existingEvent!));   
+    widget.calendarService.addEvent(
+      calendarId: widget.calendarId,
+      event: updatedEvent,
+    );*/
+
+    await widget.calendarService.updateEvent(
+      calendarId: widget.calendarId,
+      eventId: getGoogleEventId(widget.existingEvent!),
+      updatedEvent: updatedEvent,
+    );
+
+    widget.eventsController.updateCalendarData((calendarData) {
+      // Remover el evento viejo
+      calendarData.removeEvent(widget.existingEvent!);
+      _addEventToCalendar(updatedEvent);
+    });
   }
 
-  String _formatTime(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-  }
-*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -593,6 +645,11 @@ class _AddEventPageState extends State<AddEventPage> {
         endTime: endDate,
         color: widget.backgrouncolor ?? Colors.blue,
         isFullDay: googleEvent.start?.date != null,
+        data: {
+          'googleEventId': googleEvent.id,
+          'createdBy': googleEvent.creator?.email ?? 'unknown',
+          'calendarName': widget.calendarName,
+        },
       );
     }).toList();
 

@@ -11,7 +11,7 @@ import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 
 class HomePage extends StatefulWidget {
   final EventsController eventsController;
-  
+
   const HomePage({super.key, required this.eventsController});
 
   @override
@@ -73,6 +73,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onSelectCalendar(CalendarListEntry calendar) {
+    print('🎯 Calendario seleccionado:');
+    print('   - ID: ${calendar.id}');
+    print('   - Summary: ${calendar.summary}');
+    print('   - AccessRole: ${calendar.accessRole}');
+
     setState(() {
       _selectedCalendar = calendar;
       _showCalendarList = false;
@@ -102,14 +107,62 @@ class _HomePageState extends State<HomePage> {
         onSelectCalendar: _onSelectCalendar,
       );
     } else {
+      // ✅ VERIFICACIÓN CRÍTICA - Asegurar que tenemos calendarId
+      if (_selectedCalendar == null || _selectedCalendar!.id == null) {
+        print('❌ ERROR: No hay calendario seleccionado o ID es nulo');
+        print('   - _selectedCalendar: $_selectedCalendar');
+        print('   - _selectedCalendar?.id: ${_selectedCalendar?.id}');
+
+        // Volver a la lista de calendarios
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _showCalendarList = true;
+          });
+        });
+
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Error: Calendario no válido'),
+            ],
+          ),
+        );
+      }
+
+      print('✅ Navegando a ShowCalendarPage con:');
+      print('   - Calendar ID: ${_selectedCalendar!.id}');
+      print('   - Calendar Summary: ${_selectedCalendar!.summary}');
+
+      return ShowCalendarPage(
+        calendarId: _selectedCalendar!.id!, // ✅ Usar ! para forzar non-null
+        calendar: _selectedCalendar,
+        togglePages: _onBackToList,
+        calendarService: _calendarService,
+        eventsController: widget.eventsController,
+      );
+    }
+  }
+
+  /*
+  @override
+  Widget build(BuildContext context) {
+    if (_showCalendarList) {
+      return ShowCalendarListPage(
+        calendars: _calendars,
+        onSelectCalendar: _onSelectCalendar,
+      );
+    } else {
       return ShowCalendarPage(
         calendarId: _selectedCalendar?.id ?? '',
         calendar: _selectedCalendar,
-       // summary: _selectedCalendar!.summary ?? 'Calendario ',
+        // summary: _selectedCalendar!.summary ?? 'Calendario ',
         togglePages: _onBackToList,
         calendarService: _calendarService,
         eventsController: widget.eventsController, // Pasar el controller
       );
     }
-  }
+  }*/
 }

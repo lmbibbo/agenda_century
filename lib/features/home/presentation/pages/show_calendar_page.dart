@@ -150,7 +150,8 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       calendarService: widget.calendarService,
       eventsController: widget.eventsController,
       calendarMode: _currentMode,
-      backgrouncolor: _parseColor(widget.calendar!.backgroundColor!)
+      backgrouncolor: _parseColor(widget.calendar!.backgroundColor!),
+      calendarName: widget.calendar?.summary ?? 'Calendario',
     );
   }
 
@@ -164,6 +165,8 @@ void _showAddEventDialog(BuildContext context) async {
         eventsController: widget.eventsController,
         backgrouncolor:  _parseColor(widget.calendar!.backgroundColor!),
         initialDate: DateTime.now(), // O la fecha seleccionada en el calendario
+        existingEvent: null, // Indica que es un nuevo evento
+        calendarName: widget.calendar?.summary ?? 'Calendario',
       ),
     ),
   );

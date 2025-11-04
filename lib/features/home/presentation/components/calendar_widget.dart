@@ -15,6 +15,7 @@ class CustomCalendarView extends StatefulWidget {
   final EventsController eventsController;
   final Mode calendarMode;
   final Color? backgrouncolor;
+  final String calendarName;
 
   const CustomCalendarView({
     super.key,
@@ -22,7 +23,8 @@ class CustomCalendarView extends StatefulWidget {
     required this.calendarService,
     required this.eventsController,
     required this.calendarMode,
-    this.backgrouncolor
+    this.backgrouncolor,
+    required this.calendarName,
   });
 
   @override
@@ -49,6 +51,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
         timeMax: DateTime.now().add(const Duration(days: 30)).toUtc(),
       );
 
+      print('ID en calendarWidget: ${widget.calendarId}');
       _convertToCalendarEvents(events);
     } catch (e) {
       print('Error loading events: $e');
@@ -73,7 +76,12 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
         startTime: startDate,
         endTime: endDate,
         color: widget.backgrouncolor ?? Colors.blue,
-        isFullDay: googleEvent.start?.date != null
+        isFullDay: googleEvent.start?.date != null,
+        data: {
+          'googleEventId': googleEvent.id,
+          'createdBy': googleEvent.creator?.email ?? 'unknown',
+          'calendarName': widget.calendarName,
+        },
       );
     }).toList();
 
@@ -88,9 +96,9 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
 
     return switch (widget.calendarMode) {
       Mode.agenda => EventsListView(eventsController: widget.eventsController),
-      Mode.day => PlannerOneDay(eventsController: widget.eventsController),
+      Mode.day => PlannerOneDay(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId),
       Mode.day7 => PlannerEventsDrag(eventsController: widget.eventsController, key: UniqueKey(), daysShowed: 7),
-      Mode.day3Draggable => PlannerTreeDays(eventsController: widget.eventsController),
+      Mode.day3Draggable => PlannerTreeDays(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId ),
 
       /*// TODO: Handle this case.
       Mode.month => throw UnimplementedError(),

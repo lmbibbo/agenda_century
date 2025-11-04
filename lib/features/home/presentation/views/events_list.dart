@@ -42,7 +42,7 @@ class _EventsListViewState extends State<EventsListView> {
               );
             },
             onDayChange: (firstDay) {
-              print("Día inicial: cambiado a: $firstDay");
+              // print("Día inicial: cambiado a: $firstDay");
               setState(() {
                 selectedDay = firstDay;
               });
@@ -61,7 +61,7 @@ class _EventsListViewState extends State<EventsListView> {
       selectedDay: selectedDay,
       headerVisible: false,
       onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
-        print("Día seleccionado: $selectedDay y FocusedDay: $focusedDay");
+        // print("Día seleccionado: $selectedDay y FocusedDay: $focusedDay");
         setState(() {
           this.selectedDay = selectedDay;
         });

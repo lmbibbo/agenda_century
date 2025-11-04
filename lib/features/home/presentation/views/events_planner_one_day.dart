@@ -6,8 +6,10 @@ import '../utils.dart';
 
 class PlannerOneDay extends StatefulWidget {
   final dynamic eventsController;
+  final dynamic calendarService;
+  final String calendarId;
 
-  const PlannerOneDay({super.key, required this.eventsController});
+  const PlannerOneDay({super.key, required this.eventsController, required this.calendarService, required this.calendarId });
 
   @override
   State<PlannerOneDay> createState() => _PlannerOneDayState();
@@ -16,6 +18,7 @@ class PlannerOneDay extends StatefulWidget {
 class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
   GlobalKey<EventsPlannerState> oneDayViewKey = GlobalKey<EventsPlannerState>();
   late DateTime selectedDay;
+  late EventHandler eventHandler;
 
   @override
   void didChangeDependencies() {
@@ -31,6 +34,12 @@ class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
   void initState() {
     super.initState();
     selectedDay = widget.eventsController.focusedDay;
+    print('Calendar ID en PlannerOneDay: ${widget.calendarId}');
+    eventHandler = EventHandler(
+      context: context,
+      eventsController: widget.eventsController,
+      calendarService: widget.calendarService,
+    );
   }
 
   @override
@@ -89,7 +98,7 @@ class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
                   roundBorderRadius: 15,
                   horizontalPadding: 8,
                   verticalPadding: 4,
-                  onTap: () => showEventModal(context, event),
+                  onTap: () => eventHandler.showEventModal(event, widget.calendarId),
                   onTapDown: (details) => print("tapdown ${event.uniqueId}"),
                 );
               },
@@ -122,5 +131,4 @@ class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
       },
     );
   }
-
 }
