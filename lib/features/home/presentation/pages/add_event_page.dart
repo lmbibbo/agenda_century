@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import '../../services/calendar_service.dart';
 import '../utils.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class AddEventPage extends StatefulWidget {
   final String calendarId;
@@ -70,7 +71,6 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   void _loadExistingEventData() {
-
     if (widget.existingEvent == null) {
       print("No hay evento existente para cargar");
       return;
@@ -121,6 +121,17 @@ class _AddEventPageState extends State<AddEventPage> {
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
       locale: const Locale('es', 'ES'),
+      builder: (BuildContext context, Widget? child) {
+        return Localizations.override(
+          context: context,
+          locale: const Locale('es', 'ES'),
+          delegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
@@ -138,15 +149,168 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
+  Future<void> _selectTimeWithDropdown(
+    BuildContext context,
+    bool isStart,
+  ) async {
+    final currentTime = isStart ? _startTime : _endTime;
+    int selectedHour = currentTime.hour;
+    int selectedMinute = currentTime.minute;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Text(isStart ? 'Hora de inicio' : 'Hora de fin'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Hora'),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButton<int>(
+                              value: selectedHour,
+                              isExpanded: true,
+                              underline:
+                                  const SizedBox(), // Quitar línea inferior
+                              items: List.generate(24, (index) => index).map((
+                                hour,
+                              ) {
+                                return DropdownMenuItem<int>(
+                                  value: hour,
+                                  child: Text(
+                                    hour.toString().padLeft(2, '0'),
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  selectedHour = value!;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Minutos'),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButton<int>(
+                              value: selectedMinute,
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              items: [0, 15, 30, 45].map((minute) {
+                                return DropdownMenuItem<int>(
+                                  value: minute,
+                                  child: Text(
+                                    minute.toString().padLeft(2, '0'),
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  selectedMinute = value!;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Hora seleccionada: ${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final selectedTime = TimeOfDay(
+                    hour: selectedHour,
+                    minute: selectedMinute,
+                  );
+                  setState(() {
+                    if (isStart) {
+                      _startTime = selectedTime;
+                      _startDate = DateTime(
+                        _startDate.year,
+                        _startDate.month,
+                        _startDate.day,
+                        _startTime.hour,
+                        _startTime.minute,
+                      );
+                    } else {
+                      _endTime = selectedTime;
+                      _endDate = DateTime(
+                        _endDate.year,
+                        _endDate.month,
+                        _endDate.day,
+                        _endTime.hour,
+                        _endTime.minute,
+                      );
+                    }
+                  });
+                  Navigator.pop(context);
+                },
+                child: const Text('Aceptar'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _selectTime(BuildContext context, bool isStart) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: isStart ? _startTime : _endTime,
+      initialEntryMode: TimePickerEntryMode.inputOnly,
       builder: (BuildContext context, Widget? child) {
-        return Localizations.override(
-          context: context,
-          locale: const Locale('es', 'ES'),
-          child: child,
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            alwaysUse24HourFormat: true, // ← Esto fuerza formato 24 horas
+          ),
+          child: Localizations.override(
+            context: context,
+            locale: const Locale('es', 'ES'),
+            child: child!,
+          ),
         );
       },
     );
@@ -303,10 +467,89 @@ class _AddEventPageState extends State<AddEventPage> {
 
     widget.eventsController.updateCalendarData((calendarData) {
       // Remover el evento viejo
-      
+
       calendarData.removeEvent(widget.existingEvent!);
       _addEventToCalendar(updatedEvent);
     });
+  }
+
+  Future<void> _selectDateUniversal(BuildContext context, bool isStart) async {
+    DateTime selectedDate = isStart ? _startDate : _endDate;
+
+    await showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          constraints: BoxConstraints(
+            maxWidth: 400, // Ancho máximo para evitar problemas
+            minWidth: 350, // Ancho mínimo
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Seleccionar Fecha',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 330,
+                child: CalendarDatePicker(
+                  initialDate: selectedDate,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2030),
+                  onDateChanged: (DateTime value) {
+                    selectedDate = value;
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _handleDateSelected(selectedDate, isStart);
+                    },
+                    child: const Text('Aceptar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleDateSelected(DateTime selectedDate, bool isStart) {
+    setState(() {
+      if (isStart) {
+        _startDate = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+        );
+        if (_startDate.isAfter(_endDate)) {
+          _endDate = _startDate.add(const Duration(hours: 1));
+          _endTime = TimeOfDay.fromDateTime(_endDate);
+        }
+      } else {
+        _endDate = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+        );
+      }
+    });
+    print('Fecha seleccionada: $selectedDate');
   }
 
   @override
@@ -316,7 +559,7 @@ class _AddEventPageState extends State<AddEventPage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
-        title: const Text('Nuevo Evento'),
+        title: Text(_isEditing ? 'Editar Evento' : 'Nuevo Evento'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(false),
@@ -457,6 +700,12 @@ class _AddEventPageState extends State<AddEventPage> {
                     ),
                     const SizedBox(height: 16),
 
+                    // 📌 PARA USAR EN UN BOTÓN:
+                    ElevatedButton(
+                      onPressed: () => _selectDateUniversal(context, true),
+                      child: const Text('Seleccionar Fecha'),
+                    ),
+
                     // Fecha y hora de inicio
                     Card(
                       color: Theme.of(context).colorScheme.surfaceVariant,
@@ -491,7 +740,8 @@ class _AddEventPageState extends State<AddEventPage> {
                               children: [
                                 Expanded(
                                   child: OutlinedButton(
-                                    onPressed: () => _selectDate(context, true),
+                                    onPressed: () =>
+                                        _selectDateUniversal(context, true),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Theme.of(
                                         context,
@@ -509,8 +759,10 @@ class _AddEventPageState extends State<AddEventPage> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: () =>
-                                          _selectTime(context, true),
+                                      onPressed: () => _selectTimeWithDropdown(
+                                        context,
+                                        true,
+                                      ),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: Theme.of(
                                           context,
@@ -568,7 +820,7 @@ class _AddEventPageState extends State<AddEventPage> {
                                 Expanded(
                                   child: OutlinedButton(
                                     onPressed: () =>
-                                        _selectDate(context, false),
+                                        _selectDateUniversal(context, false),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Theme.of(
                                         context,
@@ -586,8 +838,10 @@ class _AddEventPageState extends State<AddEventPage> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: () =>
-                                          _selectTime(context, false),
+                                      onPressed: () => _selectTimeWithDropdown(
+                                        context,
+                                        false,
+                                      ),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: Theme.of(
                                           context,
