@@ -295,12 +295,6 @@ class _AddEventPageState extends State<AddEventPage> {
       return;
     }
 
-    /* widget.calendarService.deleteEvent(calendarId: widget.calendarId, eventId: getGoogleEventId(widget.existingEvent!));   
-    widget.calendarService.addEvent(
-      calendarId: widget.calendarId,
-      event: updatedEvent,
-    );*/
-
     await widget.calendarService.updateEvent(
       calendarId: widget.calendarId,
       eventId: getGoogleEventId(widget.existingEvent!),
@@ -309,6 +303,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
     widget.eventsController.updateCalendarData((calendarData) {
       // Remover el evento viejo
+      
       calendarData.removeEvent(widget.existingEvent!);
       _addEventToCalendar(updatedEvent);
     });

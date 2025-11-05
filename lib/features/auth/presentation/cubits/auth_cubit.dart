@@ -24,6 +24,7 @@ class AuthCubit extends Cubit<AuthState> {
     if (user != null) {
       _currentUser = user;
       emit(Authenticated(user));
+      print("Usuario autenticado en el cubit: ${user.email}");
     } else {
       emit(Unauthenticated());
     }
