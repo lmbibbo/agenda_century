@@ -29,10 +29,10 @@ class CalendarListItem extends StatelessWidget {
               const SizedBox(height: 12),
               
               // Información de acceso y propiedades
-              _buildAccessInfo(context),
+              //_buildAccessInfo(context),
               
               // Metadata técnica
-              _buildTechnicalInfo(context),
+              //_buildTechnicalInfo(context),
             ],
           ),
         ),
@@ -74,7 +74,7 @@ class CalendarListItem extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              if (calendar.description != null && calendar.description!.isNotEmpty) ...[
+              /*if (calendar.description != null && calendar.description!.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   calendar.description!,
@@ -83,7 +83,7 @@ class CalendarListItem extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
-              ],
+              ],*/
             ],
           ),
         ),

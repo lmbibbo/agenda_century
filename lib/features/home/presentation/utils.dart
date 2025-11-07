@@ -91,7 +91,6 @@ class EventHandler {
   }
 
   void _confirmDelete(Event event, String calendarId) {
-
     final String eventId = getGoogleEventId(event);
     calendarService.deleteEvent(calendarId: calendarId, eventId: eventId);
     eventsController.updateCalendarData((calendarData) {
@@ -211,3 +210,13 @@ String getGoogleEventId(Event localEvent) {
   // print('  - 🚨 ESTE EVENTO NO ES DE GOOGLE CALENDAR O NO TIENE ID');
   return '';
 }
+
+Color parseColor(String colorHex) {
+  try {
+    final hexCode = colorHex.replaceFirst('#', '');
+    return Color(int.parse('FF$hexCode', radix: 16));
+  } catch (e) {
+    return Colors.grey;
+  }
+}
+

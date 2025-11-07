@@ -123,7 +123,7 @@ class _ShowCalendarListPageState extends State<ShowCalendarListPage> {
             // Sección de Calendarios Salas Century
             if (_hasOwnCalendars) ...[
               _buildSectionHeader(
-                title: 'Calendarios',
+                title: 'Calendarios Compartidos',
                 icon: Icons.meeting_room,
               ),
               const SizedBox(height: 16),

@@ -8,11 +8,13 @@ import '../views/events_planner_one_day.dart';
 import '../views/events_planner_draggable_events.dart';
 import '../views/events_planner_three_days.dart';
 import '../views/events_months.dart';
+import 'package:googleapis/calendar/v3.dart' as gcal;
 
 class CustomCalendarView extends StatefulWidget {
   final String calendarId;
   final CalendarService calendarService;
   final EventsController eventsController;
+  final gcal.CalendarListEntry calendar;
   final Mode calendarMode;
   final Color? backgrouncolor;
   final String calendarName;
@@ -23,6 +25,7 @@ class CustomCalendarView extends StatefulWidget {
     required this.calendarService,
     required this.eventsController,
     required this.calendarMode,
+    required this.calendar,
     this.backgrouncolor,
     required this.calendarName,
   });
@@ -96,9 +99,9 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
 
     return switch (widget.calendarMode) {
       Mode.agenda => EventsListView(eventsController: widget.eventsController),
-      Mode.day => PlannerOneDay(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId),
+      Mode.day => PlannerOneDay(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId, calendar: widget.calendar,),
       Mode.day7 => PlannerEventsDrag(eventsController: widget.eventsController, key: UniqueKey(), daysShowed: 7),
-      Mode.day3Draggable => PlannerTreeDays(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId ),
+      Mode.day3Draggable => PlannerTreeDays(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId, calendar: widget.calendar,),
 
       /*// TODO: Handle this case.
       Mode.month => throw UnimplementedError(),

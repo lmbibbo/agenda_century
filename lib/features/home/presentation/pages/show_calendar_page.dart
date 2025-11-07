@@ -6,6 +6,7 @@ import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import '../enumerations.dart';
 import '../../../themes/theme_manager.dart';
+import '../utils.dart';
 
 class ShowCalendarPage extends StatefulWidget {
   final String calendarId;
@@ -149,8 +150,9 @@ class _ShowCalendarPageState extends State<ShowCalendarPage> {
       calendarId: widget.calendarId,
       calendarService: widget.calendarService,
       eventsController: widget.eventsController,
+      calendar: widget.calendar!,
       calendarMode: _currentMode,
-      backgrouncolor: _parseColor(widget.calendar!.backgroundColor!),
+      backgrouncolor: parseColor(widget.calendar!.backgroundColor!),
       calendarName: widget.calendar?.summary ?? 'Calendario',
     );
   }
@@ -163,7 +165,7 @@ void _showAddEventDialog(BuildContext context) async {
         calendarId: widget.calendarId,
         calendarService: widget.calendarService,
         eventsController: widget.eventsController,
-        backgrouncolor:  _parseColor(widget.calendar!.backgroundColor!),
+        backgrouncolor:  parseColor(widget.calendar!.backgroundColor!),
         initialDate: DateTime.now(), // O la fecha seleccionada en el calendario
         existingEvent: null, // Indica que es un nuevo evento
         calendarName: widget.calendar?.summary ?? 'Calendario',
@@ -251,15 +253,6 @@ void _showAddEventDialog(BuildContext context) async {
           : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
-  }
-
-    Color _parseColor(String colorHex) {
-    try {
-      final hexCode = colorHex.replaceFirst('#', '');
-      return Color(int.parse('FF$hexCode', radix: 16));
-    } catch (e) {
-      return Colors.grey;
-    }
   }
 
 }

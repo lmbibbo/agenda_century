@@ -10,6 +10,8 @@ class AddEventPage extends StatefulWidget {
   final String calendarId;
   final CalendarService calendarService;
   final DateTime? initialDate;
+  final TimeOfDay? initialTime;
+  final TimeOfDay? finalTime;
   final EventsController eventsController;
   final Color backgrouncolor;
   final Event? existingEvent;
@@ -20,6 +22,8 @@ class AddEventPage extends StatefulWidget {
     required this.calendarId,
     required this.calendarService,
     this.initialDate,
+    this.initialTime,
+    this.finalTime,
     required this.eventsController,
     required this.backgrouncolor,
     required this.existingEvent,
@@ -39,11 +43,9 @@ class _AddEventPageState extends State<AddEventPage> {
   late DateFormat _timeFormat;
 
   DateTime _startDate = DateTime.now();
-  TimeOfDay _startTime = TimeOfDay.now();
   DateTime _endDate = DateTime.now().add(const Duration(hours: 1));
-  TimeOfDay _endTime = TimeOfDay.fromDateTime(
-    DateTime.now().add(const Duration(hours: 1)),
-  );
+  TimeOfDay _startTime = TimeOfDay.now();
+  TimeOfDay _endTime = TimeOfDay.now();
   bool _isAllDay = false;
   bool _isLoading = false;
   bool _isEditing = false; // Nuevo: indica si estamos editando
@@ -51,7 +53,8 @@ class _AddEventPageState extends State<AddEventPage> {
   @override
   void initState() {
     super.initState();
-
+    _startTime = widget.initialTime ?? _startTime;
+    _endTime = widget.finalTime ?? _endTime;
     _isEditing = widget.existingEvent != null;
 
     if (_isEditing) {
@@ -60,12 +63,7 @@ class _AddEventPageState extends State<AddEventPage> {
     } else if (widget.initialDate != null) {
       _startDate = widget.initialDate!;
       _endDate = widget.initialDate!.add(const Duration(hours: 1));
-      _startTime = TimeOfDay.fromDateTime(widget.initialDate!);
-      _endTime = TimeOfDay.fromDateTime(
-        widget.initialDate!.add(const Duration(hours: 1)),
-      );
     }
-
     _dateFormat = DateFormat('dd/MM/yyyy');
     _timeFormat = DateFormat('HH:mm');
   }

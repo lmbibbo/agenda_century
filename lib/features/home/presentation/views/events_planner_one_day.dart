@@ -1,15 +1,24 @@
+import 'package:agenda_century/features/home/presentation/pages/add_event_page.dart';
 import 'widgets/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_calendar_view/infinite_calendar_view.dart';
 import 'package:intl/intl.dart';
+import 'package:googleapis/calendar/v3.dart' as gcal;
 import '../utils.dart';
 
 class PlannerOneDay extends StatefulWidget {
   final dynamic eventsController;
   final dynamic calendarService;
   final String calendarId;
+  final gcal.CalendarListEntry calendar;
 
-  const PlannerOneDay({super.key, required this.eventsController, required this.calendarService, required this.calendarId });
+  const PlannerOneDay({
+    super.key,
+    required this.eventsController,
+    required this.calendarService,
+    required this.calendarId,
+    required this.calendar,
+  });
 
   @override
   State<PlannerOneDay> createState() => _PlannerOneDayState();
@@ -98,16 +107,18 @@ class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
                   roundBorderRadius: 15,
                   horizontalPadding: 8,
                   verticalPadding: 4,
-                  onTap: () => eventHandler.showEventModal(event, widget.calendarId),
+                  onTap: () =>
+                      eventHandler.showEventModal(event, widget.calendarId),
                   onTapDown: (details) => print("tapdown ${event.uniqueId}"),
                 );
               },
               slotSelectionParam: SlotSelectionParam(
                 enableTapSlotSelection: true,
                 enableLongPressSlotSelection: true,
-                onSlotSelectionTap: (slot) => showSnack(
+                onSlotSelectionTap: (slot) => _showAddEventDialog(
                   context,
-                  "Hola ${slot.startDateTime} : ${slot.durationInMinutes}",
+                  slot.startDateTime,
+                  slot.durationInMinutes,
                 ),
               ),
             ),
@@ -130,5 +141,44 @@ class _PlannerOneDayState extends State<PlannerOneDay> with RouteAware {
         oneDayViewKey.currentState?.jumpToDate(selectedDay);
       },
     );
+  }
+
+  void _showAddEventDialog(
+    BuildContext context,
+    DateTime startDateTime,
+    int durationInMinutes,
+  ) async {
+    print("Mostrando diálogo para agregar evento");
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AddEventPage(
+          calendarId: widget.calendarId,
+          calendarService: widget.calendarService,
+          eventsController: widget.eventsController,
+          backgrouncolor: parseColor(widget.calendar!.backgroundColor!),
+          initialDate:
+              DateTime.now(), // O la fecha seleccionada en el calendario
+          initialTime: TimeOfDay.fromDateTime(startDateTime),
+          finalTime: TimeOfDay.fromDateTime(
+            (startDateTime).add(Duration(minutes: durationInMinutes)),
+          ),
+          existingEvent: null, // Indica que es un nuevo evento
+          calendarName: widget.calendar?.summary ?? 'Calendario',
+        ),
+      ),
+    );
+
+    if (result == true) {
+      // Recargar eventos si se creó uno nuevo
+      //widget.eventsController.updateCalendarData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Evento agregado exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
   }
 }
