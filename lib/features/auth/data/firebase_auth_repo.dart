@@ -13,7 +13,12 @@ import 'package:googleapis/calendar/v3.dart';
 class FirebaseAuthRepo implements AuthRepo {
   // Add your Firebase authentication methods here
   static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  static final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(
+     scopes: [
+    'https://www.googleapis.com/auth/calendar',          // Para acceso completo al calendario
+    'https://www.googleapis.com/auth/calendar.events',   // Para acceso específico a eventos
+  ],
+  );
   static bool isInitialize = false;
 
   @override
@@ -70,15 +75,23 @@ class FirebaseAuthRepo implements AuthRepo {
 
   @override
   Future<AppUser?> getCurrentUser() async {
-    User? user = _firebaseAuth.currentUser;
-    if (user != null) {
-      return AppUser(
-        id: user.uid,
-        email: user.email ?? '',
-        name: user.displayName ?? '',
-      );
-    }
-    return null;
+    AppUser? appUser;
+
+    _firebaseAuth.authStateChanges().listen((User? user) {
+      if (user == null) {
+        print('User is currently signed out!');
+      } else {
+        print('User is signed in!');
+
+        appUser = AppUser(
+          id: user.uid,
+          email: user.email ?? '',
+          name: user.displayName ?? '',
+        );
+      }
+    });
+
+    return appUser;
   }
 
   @override
@@ -121,9 +134,7 @@ class FirebaseAuthRepo implements AuthRepo {
         GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
         // ✅ ESTO ES CLAVE: Forzar selección de cuenta siempre
-        googleProvider.setCustomParameters({
-          'prompt': 'select_account',
-        });
+        googleProvider.setCustomParameters({'prompt': 'select_account'});
 
         googleProvider.addScope(CalendarApi.calendarScope);
         googleProvider.addScope(CalendarApi.calendarReadonlyScope);
@@ -151,7 +162,7 @@ class FirebaseAuthRepo implements AuthRepo {
     }
   }
 
-  Future<AppUser?> mobileSignInWithGoogle() async {
+  /*  Future<AppUser?> mobileSignInWithGoogle() async {
     try {
       initSignIn();
       final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
@@ -171,7 +182,7 @@ class FirebaseAuthRepo implements AuthRepo {
         );
         if (authorization2?.accessToken == null) {
           print('Both authorization attempts failed');
-          throw FirebaseAuthException(code: "error", message: "error");
+          throw FirebaseAuthException(code: "error", message: "Es por acá error");
         }
         authorization = authorization2;
       }
@@ -212,5 +223,45 @@ class FirebaseAuthRepo implements AuthRepo {
       );
     }
     isInitialize = true;
+  }
+*/
+  Future<AppUser?> mobileSignInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
+
+      // user cancelled sign-in
+      if (gUser == null) return null;
+
+      // obtain auth details from request
+      final GoogleSignInAuthentication gAuth = await gUser.authentication;
+
+      // create a credential for the user
+      final credential = GoogleAuthProvider.credential(
+        accessToken: gAuth.accessToken,
+        idToken: gAuth.idToken,
+      );
+
+      // sign in with these credentials
+      UserCredential userCredential = await _firebaseAuth.signInWithCredential(
+        credential,
+      );
+
+      // firebase user
+      final firebaseUser = userCredential.user;
+
+      // user cancelled sign-in process
+      if (firebaseUser == null) return null;
+
+      AppUser appUser = AppUser(
+        id: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        name: firebaseUser.displayName ?? '',
+      );
+      appUser.accessToken = credential.accessToken!;
+      return appUser;
+    } catch (e) {
+      print('Error during mobile Google Sign-In: $e');
+      rethrow;
+    }
   }
 }

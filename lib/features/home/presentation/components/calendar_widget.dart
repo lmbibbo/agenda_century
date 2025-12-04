@@ -6,7 +6,7 @@ import '../enumerations.dart';
 import '../views/events_list.dart';
 import '../views/events_planner_one_day.dart';
 import '../views/events_planner_draggable_events.dart';
-import '../views/events_planner_three_days.dart';
+import '../views/events_planner_days.dart';
 import '../views/events_months.dart';
 import 'package:googleapis/calendar/v3.dart' as gcal;
 
@@ -100,8 +100,8 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
     return switch (widget.calendarMode) {
       Mode.agenda => EventsListView(eventsController: widget.eventsController),
       Mode.day => PlannerOneDay(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId, calendar: widget.calendar,),
-      Mode.day7 => PlannerEventsDrag(eventsController: widget.eventsController, key: UniqueKey(), daysShowed: 7),
-      Mode.day3Draggable => PlannerTreeDays(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId, calendar: widget.calendar,),
+      Mode.day7 => PlannerDays(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId, calendar: widget.calendar, daysShowed: 7),
+      Mode.day3Draggable => PlannerDays(eventsController: widget.eventsController, calendarService: widget.calendarService, calendarId: widget.calendarId, calendar: widget.calendar, daysShowed: 3 ),
 
       /*// TODO: Handle this case.
       Mode.month => throw UnimplementedError(),

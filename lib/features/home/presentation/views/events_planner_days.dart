@@ -5,25 +5,27 @@ import 'package:intl/intl.dart';
 import 'package:googleapis/calendar/v3.dart' as gcal;
 import '../utils.dart';
 
-class PlannerTreeDays extends StatefulWidget {
+class PlannerDays extends StatefulWidget {
   final dynamic eventsController;
   final dynamic calendarService;
   final String calendarId;
   final gcal.CalendarListEntry calendar;
+  final int daysShowed;
 
-  const PlannerTreeDays({
+  const PlannerDays({
     super.key,
     required this.eventsController,
     required this.calendarService,
     required this.calendarId,
     required this.calendar,
+    required this.daysShowed,
   });
 
   @override
-  State<PlannerTreeDays> createState() => _PlannerTreeDaysState();
+  State<PlannerDays> createState() => _PlannerDaysState();
 }
 
-class _PlannerTreeDaysState extends State<PlannerTreeDays> {
+class _PlannerDaysState extends State<PlannerDays> {
   late EventHandler eventHandler;
 
   @override
@@ -44,7 +46,7 @@ class _PlannerTreeDaysState extends State<PlannerTreeDays> {
 
     return EventsPlanner(
       controller: widget.eventsController, // Usar widget.eventsController
-      daysShowed: 3,
+      daysShowed: widget.daysShowed,
       heightPerMinute: heightPerMinute,
       initialVerticalScrollOffset: initialVerticalScrollOffset,
       offTimesParam: OffTimesParam(
@@ -108,8 +110,7 @@ class _PlannerTreeDaysState extends State<PlannerTreeDays> {
           calendarService: widget.calendarService,
           eventsController: widget.eventsController,
           backgrouncolor: parseColor(widget.calendar!.backgroundColor!),
-          initialDate:
-              DateTime.now(), // O la fecha seleccionada en el calendario
+          initialDate:startDateTime, //DateTime.now(), // O la fecha seleccionada en el calendario
           initialTime: TimeOfDay.fromDateTime(startDateTime),
           finalTime: TimeOfDay.fromDateTime(
             (startDateTime).add(Duration(minutes: durationInMinutes)),
