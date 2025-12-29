@@ -112,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
-              const SizedBox(height: 25),
+  /*            const SizedBox(height: 25),
               MyTextField(
                 controller: emailController,
                 hintText: 'Email',
@@ -172,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-
+*/
               const SizedBox(height: 25),
 
               // oath sign (google)

@@ -389,7 +389,13 @@ class _AddEventPageState extends State<AddEventPage> {
             : _descriptionController.text.trim()
         ..location = _locationController.text.trim().isEmpty
             ? null
-            : _locationController.text.trim();
+            : _locationController.text.trim()
+        ..reminders = gcal.EventReminders(
+              useDefault: false,
+              overrides: [
+                gcal.EventReminder(method: 'email', minutes: 30)
+              ],
+        );
 
       if (_isAllDay) {
         event.start = gcal.EventDateTime()

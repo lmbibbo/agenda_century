@@ -29,15 +29,30 @@ class _ShowCalendarListPageState extends State<ShowCalendarListPage> {
     }).toList();
   }
 
+  List<CalendarListEntry> get _salasCenturyCalendars {
+    return widget.calendars.where((calendar) {
+      // Calendarios que pertenecen a salascentury70@gmail.com
+      // Verificamos si el summary o id contienen esta referencia
+      final desc = calendar.description?.toLowerCase() ?? '';
+      final id = calendar.id?.toLowerCase() ?? '';
+      return desc.contains('salascentury') || 
+             id.contains('salascentury') ||
+             desc.contains('salascentury70') ||
+             id.contains('salascentury70');
+    }).toList();
+  }
+
   List<CalendarListEntry> get _otherCalendars {
     return widget.calendars.where((calendar) {
-      return !_ownCalendars.contains(calendar);
+      return !_ownCalendars.contains(calendar) && 
+             !_salasCenturyCalendars.contains(calendar);
     }).toList();
   }
 
   bool get _hasOwnCalendars => _ownCalendars.isNotEmpty;
   bool get _hasOtherCalendars => _otherCalendars.isNotEmpty;
-  bool get _hasAnyCalendars => _hasOwnCalendars || _hasOtherCalendars;
+  bool get _hasSalasCenturyCalendars => _salasCenturyCalendars.isNotEmpty;
+  bool get _hasAnyCalendars => _hasOwnCalendars || _hasOtherCalendars || _hasSalasCenturyCalendars;
 
   @override
   Widget build(BuildContext context) {
@@ -121,25 +136,36 @@ class _ShowCalendarListPageState extends State<ShowCalendarListPage> {
           padding: const EdgeInsets.all(20),
           children: [
             // Sección de Calendarios Salas Century
-            if (_hasOwnCalendars) ...[
+            if (_hasSalasCenturyCalendars) ...[
               _buildSectionHeader(
                 title: 'Calendarios Compartidos',
                 icon: Icons.meeting_room,
               ),
               const SizedBox(height: 16),
-              _buildCalendarList(_otherCalendars),
+              _buildCalendarList(_salasCenturyCalendars),
               const SizedBox(height: 24),
             ],
             
-            // Sección de Otros Calendarios
-            if (_hasOtherCalendars) ...[
+           /* if (_hasOwnCalendars) ...[
               _buildSectionHeader(
                 title: 'Mis Calendarios',
-                icon: Icons.calendar_today,
+                icon: Icons.meeting_room,
               ),
               const SizedBox(height: 16),
               _buildCalendarList(_ownCalendars),
+              const SizedBox(height: 24),
             ],
+
+            // Sección de Otros Calendarios
+            if (_hasOtherCalendars) ...[
+              _buildSectionHeader(
+                title: 'Otros Calendarios',
+                icon: Icons.calendar_today,
+              ),
+              const SizedBox(height: 16),
+              _buildCalendarList(_otherCalendars),
+            ],
+            */
           ],
         ),
       ),
