@@ -5,17 +5,17 @@ class ThemeManager {
   factory ThemeManager() => _instance;
   ThemeManager._internal();
 
-  ThemeMode _currentThemeMode = ThemeMode.system;
-  
+  ThemeMode _currentThemeMode = ThemeMode.dark;
+
   ThemeMode get currentThemeMode => _currentThemeMode;
-  
+
   void setThemeMode(ThemeMode themeMode) {
     _currentThemeMode = themeMode;
   }
-  
+
   void toggleTheme() {
-    _currentThemeMode = _currentThemeMode == ThemeMode.light 
-        ? ThemeMode.dark 
+    _currentThemeMode = _currentThemeMode == ThemeMode.light
+        ? ThemeMode.dark
         : ThemeMode.light;
   }
 }

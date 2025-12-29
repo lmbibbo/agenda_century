@@ -2,16 +2,14 @@
 
 Login Page
   - This page provides a user interface for users to log in to the application.
-  - It includes fields for entering a username and password, as well as buttons for submitting the login form and navigating to the registration page.
-
-  if the user does not have an account, they can navigate to the registration page.
+  - It only provides Google Sign-In option.
+  - Includes theme toggle button.
 
 */
 
 import 'package:agenda_century/features/auth/presentation/components/google_sign_in_button.dart';
-import 'package:agenda_century/features/auth/presentation/components/my_button.dart';
-import 'package:agenda_century/features/auth/presentation/components/my_textfield.dart';
 import 'package:agenda_century/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:agenda_century/features/themes/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,70 +22,157 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // text editing controllers
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-
   late final authCubit = context.read<AuthCubit>();
 
-  void login() {
-    final String email = emailController.text;
-    final String password = passwordController.text;
-
-    // ensure the fields are filled
-    if (email.isNotEmpty && password.isNotEmpty) {
-      authCubit.login(email, password);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter both fields!")),
-      );
+  // Método para obtener el icono del tema actual
+  IconData _getThemeIcon(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.dark:
+        return Icons.dark_mode;
+      case ThemeMode.light:
+        return Icons.light_mode;
+      case ThemeMode.system:
+        return Icons.brightness_auto;
     }
   }
 
-  void openForgotPasswordBox() {
+  // Método para cambiar el tema
+  void _changeThemeMode(ThemeMode newThemeMode) {
+    setState(() {
+      themeManager.setThemeMode(newThemeMode);
+    });
+    print('Modo de tema cambiado a: $newThemeMode');
+  }
+
+  // Diálogo para seleccionar el modo del tema
+  void _showThemeModeDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Forgot Password"),
-        content: MyTextField(
-          controller: emailController,
-          hintText: "Enter email....",
-          obscureText: false,
-        ),
-        actions: [
-          // cancel button
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          // Reset button
-          TextButton(
-            onPressed: () async {
-              String message = await authCubit.forgotPassword(
-                emailController.text,
-              );
-              if (message == "Password reset email sent! Check your imbox.") {
-                Navigator.pop(context);
-                emailController.clear();
-              }
-              ScaffoldMessenger.of(
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Seleccionar tema'),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildThemeOption(
                 context,
-              ).showSnackBar(SnackBar(content: Text(message)));
-            },
-            child: const Text("Reset"),
+                ThemeMode.light,
+                Icons.light_mode,
+                'Modo claro',
+                'Usar tema claro',
+              ),
+              const SizedBox(height: 8),
+              _buildThemeOption(
+                context,
+                ThemeMode.dark,
+                Icons.dark_mode,
+                'Modo oscuro',
+                'Usar tema oscuro',
+              ),
+              const SizedBox(height: 8),
+              _buildThemeOption(
+                context,
+                ThemeMode.system,
+                Icons.brightness_auto,
+                'Sistema',
+                'Usar configuración del sistema',
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cerrar',
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    ThemeMode themeMode,
+    IconData icon,
+    String title,
+    String subtitle,
+  ) {
+    final bool isSelected = themeManager.currentThemeMode == themeMode;
+
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isSelected
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.onSurface,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ),
+      trailing: isSelected
+          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+          : null,
+      onTap: () {
+        _changeThemeMode(themeMode);
+        Navigator.of(context).pop();
+      },
+      tileColor: isSelected
+          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+          : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          width: isSelected ? 1.5 : 0.5,
+        ),
       ),
     );
+  }
+
+  String _getThemeName(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'Claro';
+      case ThemeMode.dark:
+        return 'Oscuro';
+      case ThemeMode.system:
+        return 'Sistema';
+    }
   }
 
   // Build UI
   @override
   Widget build(BuildContext context) {
-    // Scaffold with AppBar
-
     return Scaffold(
-      // Body with padding
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          // Botón para cambiar tema en la esquina superior derecha
+          IconButton(
+            icon: Icon(_getThemeIcon(themeManager.currentThemeMode)),
+            onPressed: () => _showThemeModeDialog(context),
+            tooltip: 'Cambiar tema',
+          ),
+        ],
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -107,87 +192,84 @@ class _LoginPageState extends State<LoginPage> {
               Text(
                 'Agenda de Salas',
                 style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onBackground,
                 ),
               ),
 
-  /*            const SizedBox(height: 25),
-              MyTextField(
-                controller: emailController,
-                hintText: 'Email',
-                obscureText: false,
+              const SizedBox(height: 8),
+
+              // subtitle
+              Text(
+                'Inicia sesión para continuar',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onBackground.withOpacity(0.7),
+                ),
               ),
 
-              const SizedBox(height: 10),
-              // password text field
-              MyTextField(
-                controller: passwordController,
-                hintText: 'Password',
-                obscureText: true,
+              const SizedBox(height: 50),
+
+              // google button
+              MyGoogleSignInButton(
+                onTap: () async {
+                  await authCubit.signInGoogle();
+                },
               ),
 
-              // Forgot pw
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GestureDetector(
-                    onTap: () => openForgotPasswordBox(),
-                    child: Text(
-                      "Forgot Password?",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+              const SizedBox(height: 30),
+
+              // Información sobre el tema
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.palette,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tema actual: ${_getThemeName(themeManager.currentThemeMode)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Puedes cambiar el tema en cualquier momento',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-
-              // oauth login buttons
-              const SizedBox(height: 25),
-              MyButton(onTap: login, text: 'Login'),
-
-              // register button
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Not a member?",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: widget.togglePages,
-                    child: Text(
-                      "Register now",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-*/
-              const SizedBox(height: 25),
-
-              // oath sign (google)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(width: 10),
-
-                  // google button
-                  MyGoogleSignInButton(
-                    onTap: () async {
-                      authCubit.signInGoogle();
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
