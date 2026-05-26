@@ -29,11 +29,6 @@ class CalendarService {
 
       // print('✅ ${calendars.length} calendarios disponibles');
 
-      // Mostrar información de cada calendario
-      for (final calendar in calendars) {
-        // print('📅 ${calendar.summary} (${calendar.id}) - ${calendar.accessRole}');
-      }
-
       return calendars;
     } catch (error) {
       // print('❌ Error obteniendo calendarios: $error');
@@ -66,10 +61,6 @@ class CalendarService {
       final eventList = events.items ?? [];
 
       // print('✅ ${eventList.length} eventos encontrados en el calendario');
-      for (final event in eventList) {
-        final start = event.start?.dateTime ?? event.start?.date;
-        // print('  - ${event.summary} ($start)');
-      }
 
       return eventList;
     } catch (error) {
@@ -156,12 +147,6 @@ class CalendarService {
         calendarId: calendarId,
         eventId: eventId,
       );
-
-      if (existingEvent == null) {
-        throw Exception(
-          'El evento con ID $eventId no existe en el calendario $calendarId.',
-        );
-      }
       // print('✏️ Actualizando evento $eventId en calendario $calendarId...');
       // print('📅 CalendarId: $calendarId');
       // print('🎯 EventId: $eventId');
