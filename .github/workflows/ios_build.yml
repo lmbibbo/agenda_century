@@ -1,0 +1,66 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'latest'
+          channel: 'stable'
+          cache: true
+      
+      - name: Get Flutter version
+        run: flutter --version
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Analyze code
+        run: flutter analyze lib/
+      
+      - name: Build iOS (development - no code signing)
+        run: flutter build ios --release --no-codesign
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ios-release-build
+          path: build/ios/iphoneos/Runner.app
+          retention-days: 5
+
+  # Optional: Build with code signing (requires secrets configured)
+  # Uncomment and configure if you have Apple Developer credentials
+  # build-with-signing:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: 'latest'
+  #         channel: 'stable'
+  #     - run: flutter pub get
+  #     - name: Get provisioning profiles  
+  #       run: |
+  #         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+  #         echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+  #     - name: Build iOS (with signing)
+  #       env:
+  #         CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+  #       run: |
+  #         flutter build ipa \
+  #           --release \
+  #           --export-method development
