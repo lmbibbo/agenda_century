@@ -143,10 +143,6 @@ class CalendarService {
     required Event updatedEvent,
   }) async {
     try {
-      final Event existingEvent = await getEvent(
-        calendarId: calendarId,
-        eventId: eventId,
-      );
       // print('✏️ Actualizando evento $eventId en calendario $calendarId...');
       // print('📅 CalendarId: $calendarId');
       // print('🎯 EventId: $eventId');
